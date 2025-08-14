@@ -6,10 +6,45 @@
 
 generator client {
   provider = "prisma-client-js"
-  output   = "../generated/prisma"
 }
 
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+model User {
+  id               Int      @id @default(autoincrement())
+  name             String
+  email            String   @unique
+  password_hash    String
+  bio              String?
+  expertise        String[]
+  isMentor         Boolean  @default(false)
+  isMentorApproved Boolean  @default(false)
+  role             String   @default("mentee")
+  bookingsAsMentor Booking[] @relation("MentorBookings")
+  bookingsAsMentee Booking[] @relation("MenteeBookings")
+  mentorRequests   MentorRequest[]
+}
+
+model Booking {
+  id        Int      @id @default(autoincrement())
+  mentor    User     @relation("MentorBookings", fields: [mentor_id], references: [id])
+  mentor_id Int
+  mentee    User     @relation("MenteeBookings", fields: [mentee_id], references: [id])
+  mentee_id Int
+  datetime  DateTime
+  location  String
+  topic     String
+  status    String   @default("pending")
+}
+
+model MentorRequest {
+  id          Int    @id @default(autoincrement())
+  user        User   @relation(fields: [user_id], references: [id])
+  user_id     Int
+  document_url String
+  status      String @default("pending")
+}
+
