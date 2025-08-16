@@ -14,37 +14,104 @@ datasource db {
 }
 
 model User {
-  id               Int      @id @default(autoincrement())
-  name             String
-  email            String   @unique
-  password_hash    String
-  bio              String?
-  expertise        String[]
-  isMentor         Boolean  @default(false)
-  isMentorApproved Boolean  @default(false)
-  role             String   @default("mentee")
-  bookingsAsMentor Booking[] @relation("MentorBookings")
-  bookingsAsMentee Booking[] @relation("MenteeBookings")
-  mentorRequests   MentorRequest[]
+  id                Int              @id @default(autoincrement())
+  email             String           @unique
+  passwordHash      String
+  role              Role             @default(mentee)
+  isMentorApproved  Boolean          @default(false)
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @default(now())
+  profile           UserProfile?
+  mentorRequests    MentorRequest[]
+  mentorSkills      MentorSkill[]
+  availabilitySlots AvailabilitySlot[]
+  menteeBookings    Booking[]        @relation("MenteeBookings")
+  mentorBookings    Booking[]        @relation("MentorBookings")
+  notifications     Notification[]
 }
 
-model Booking {
-  id        Int      @id @default(autoincrement())
-  mentor    User     @relation("MentorBookings", fields: [mentor_id], references: [id])
-  mentor_id Int
-  mentee    User     @relation("MenteeBookings", fields: [mentee_id], references: [id])
-  mentee_id Int
-  datetime  DateTime
-  location  String
-  topic     String
-  status    String   @default("pending")
+model UserProfile {
+  userId         Int      @id
+  fullName       String
+  bio            String?
+  location       String?
+  profileImageUrl String?
+  linkedinUrl    String?
+  websiteUrl     String?
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model MentorRequest {
-  id          Int    @id @default(autoincrement())
-  user        User   @relation(fields: [user_id], references: [id])
-  user_id     Int
-  document_url String
-  status      String @default("pending")
+  id          Int      @id @default(autoincrement())
+  userId      Int
+  documentUrl String
+  status      RequestStatus @default(pending)
+  submittedAt DateTime @default(now())
+  reviewedAt  DateTime?
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model MentorSkill {
+  id        Int    @id @default(autoincrement())
+  mentorId  Int
+  skillName String
+  mentor    User   @relation(fields: [mentorId], references: [id], onDelete: Cascade)
+}
+
+model AvailabilitySlot {
+  id        Int      @id @default(autoincrement())
+  mentorId  Int
+  startTime DateTime
+  endTime   DateTime
+  isBooked  Boolean  @default(false)
+  mentor    User     @relation(fields: [mentorId], references: [id], onDelete: Cascade)
+  booking   Booking[]
+}
+
+model Booking {
+  id                  Int      @id @default(autoincrement())
+  mentorId            Int
+  menteeId            Int
+  availabilitySlotId  Int?
+  topic               String
+  locationType        LocationType
+  locationDetails     String?
+  status              BookingStatus @default(pending)
+  createdAt           DateTime @default(now())
+  mentor              User     @relation("MentorBookings", fields: [mentorId], references: [id], onDelete: Cascade)
+  mentee              User     @relation("MenteeBookings", fields: [menteeId], references: [id], onDelete: Cascade)
+  availabilitySlot   AvailabilitySlot? @relation(fields: [availabilitySlotId], references: [id], onDelete: SetNull)
+}
+
+model Notification {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  message   String
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+enum Role {
+  mentee
+  mentor
+}
+
+enum RequestStatus {
+  pending
+  approved
+  rejected
+}
+
+enum BookingStatus {
+  pending
+  confirmed
+  rejected
+  cancelled
+}
+
+enum LocationType {
+  online
+  in_person
 }
 
