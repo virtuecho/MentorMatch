@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -14,41 +8,41 @@ datasource db {
 }
 
 model User {
-  id                Int              @id @default(autoincrement())
-  email             String           @unique
+  id                Int                @id @default(autoincrement())
+  email             String             @unique
+  isMentorApproved  Boolean            @default(false)
+  createdAt         DateTime           @default(now())
   passwordHash      String
-  role              Role             @default(mentee)
-  isMentorApproved  Boolean          @default(false)
-  createdAt         DateTime         @default(now())
-  updatedAt         DateTime         @default(now())
-  profile           UserProfile?
+  updatedAt         DateTime           @default(now())
+  role              Role               @default(mentee)
+  availabilitySlots AvailabilitySlot[]
+  menteeBookings    Booking[]          @relation("MenteeBookings")
+  mentorBookings    Booking[]          @relation("MentorBookings")
   mentorRequests    MentorRequest[]
   mentorSkills      MentorSkill[]
-  availabilitySlots AvailabilitySlot[]
-  menteeBookings    Booking[]        @relation("MenteeBookings")
-  mentorBookings    Booking[]        @relation("MentorBookings")
   notifications     Notification[]
+  profile           UserProfile?
 }
 
 model UserProfile {
-  userId         Int      @id
-  fullName       String
-  bio            String?
-  location       String?
+  userId          Int     @id
+  fullName        String
+  bio             String?
+  location        String?
   profileImageUrl String?
-  linkedinUrl    String?
-  websiteUrl     String?
-  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  linkedinUrl     String?
+  websiteUrl      String?
+  user            User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model MentorRequest {
-  id          Int      @id @default(autoincrement())
-  userId      Int
+  id          Int           @id @default(autoincrement())
   documentUrl String
-  status      RequestStatus @default(pending)
-  submittedAt DateTime @default(now())
   reviewedAt  DateTime?
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  submittedAt DateTime      @default(now())
+  userId      Int
+  status      RequestStatus @default(pending)
+  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model MentorSkill {
@@ -59,28 +53,28 @@ model MentorSkill {
 }
 
 model AvailabilitySlot {
-  id        Int      @id @default(autoincrement())
+  id        Int       @id @default(autoincrement())
   mentorId  Int
   startTime DateTime
   endTime   DateTime
-  isBooked  Boolean  @default(false)
-  mentor    User     @relation(fields: [mentorId], references: [id], onDelete: Cascade)
+  isBooked  Boolean   @default(false)
+  mentor    User      @relation(fields: [mentorId], references: [id], onDelete: Cascade)
   booking   Booking[]
 }
 
 model Booking {
-  id                  Int      @id @default(autoincrement())
-  mentorId            Int
-  menteeId            Int
-  availabilitySlotId  Int?
-  topic               String
-  locationType        LocationType
-  locationDetails     String?
-  status              BookingStatus @default(pending)
-  createdAt           DateTime @default(now())
-  mentor              User     @relation("MentorBookings", fields: [mentorId], references: [id], onDelete: Cascade)
-  mentee              User     @relation("MenteeBookings", fields: [menteeId], references: [id], onDelete: Cascade)
-  availabilitySlot   AvailabilitySlot? @relation(fields: [availabilitySlotId], references: [id], onDelete: SetNull)
+  id                 Int               @id @default(autoincrement())
+  topic              String
+  availabilitySlotId Int?
+  createdAt          DateTime          @default(now())
+  locationDetails    String?
+  locationType       LocationType
+  menteeId           Int
+  mentorId           Int
+  status             BookingStatus     @default(pending)
+  availabilitySlot   AvailabilitySlot? @relation(fields: [availabilitySlotId], references: [id])
+  mentee             User              @relation("MenteeBookings", fields: [menteeId], references: [id], onDelete: Cascade)
+  mentor             User              @relation("MentorBookings", fields: [mentorId], references: [id], onDelete: Cascade)
 }
 
 model Notification {
@@ -114,4 +108,3 @@ enum LocationType {
   online
   in_person
 }
-
