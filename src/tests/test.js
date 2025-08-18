@@ -50,5 +50,19 @@ describe("Auth Endpoints", () => {
       });
     expect(res.statusCode).toBe(401);
   });
+
+  it("should access profile with token", async () => {
+    const res = await request(app)
+      .get("/auth/profile")
+      .set("Authorization", `Bearer ${token}`);
+    expect(res.statusCode).toBe(200);
+    expect(res.body.email).toBe("test@example.com");
+  });
+
+  it("should block profile without token", async () => {
+    const res = await request(app)
+      .get("/auth/profile");
+    expect(res.statusCode).toBe(401);
+  });
 });
 

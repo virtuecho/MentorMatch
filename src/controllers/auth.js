@@ -61,3 +61,12 @@ exports.login = async (req, res) => {
     console.error('Login error: ', err);
   }
 };
+
+exports.getProfile = async (req, res) => {
+  try {
+    const user = await prisma.user.findUnique({ where: { id: req.user.id } });
+    res.json(user);
+  } catch (err) {
+    res.status(500).json({ error: 'Could not fetch profile' });
+  }
+};
