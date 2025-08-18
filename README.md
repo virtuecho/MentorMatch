@@ -1,6 +1,6 @@
 # Networking Companion Backend
 
-This is the backend for the mentor-mentee connection app. It handles user authentication, mentor search, booking requests, and mentor validation workflows.
+Some guidances to start setting up the program
 
 Built with:
 - Node.js + Express.js
