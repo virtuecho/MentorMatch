@@ -1,45 +1,54 @@
-const { PrismaClient } = require('@prisma/client');
-const bcrypt = require('bcrypt');
+const request = require("supertest");
+const app = require("../app");
+const { PrismaClient } = require("@prisma/client");
 
 const prisma = new PrismaClient();
 
-async function main() {
-  // Step 1: Hash a password
-  const plainPassword = 'secure123';
-  const hashedPassword = await bcrypt.hash(plainPassword, 10);
+// Clean DB before running tests
+beforeAll(async () => {
+  await prisma.user.deleteMany();
+});
 
-  // Step 2: Create a new user
-  const newUser = await prisma.user.create({
-    data: {
-      name: 'Test User',
-      email: 'testuser@example.com',
-      password_hash: hashedPassword,
-      bio: 'I love mentoring.',
-      expertise: ['JavaScript', 'Docker'],
-      isMentor: true,
-      isMentorApproved: true,
-      role: 'mentor',
-    },
+afterAll(async () => {
+  await prisma.$disconnect();
+});
+
+describe("Auth Endpoints", () => {
+  let token;
+
+  it("should register a new user", async () => {
+    const res = await request(app)
+      .post("/auth/register")
+      .send({
+        fullName: "Test User",
+        email: "test@example.com",
+        password: "password123",
+      });
+    expect(res.statusCode).toBe(201);
+    expect(res.body).toHaveProperty("user");
+    expect(res.body.user.email).toBe("test@example.com");
   });
 
-  console.log('User created:', newUser);
-
-  // Step 3: Fetch user by email
-  const fetchedUser = await prisma.user.findUnique({
-    where: { email: 'testuser@example.com' },
+  it("should login with valid credentials", async () => {
+    const res = await request(app)
+      .post("/auth/login")
+      .send({
+        email: "test@example.com",
+        password: "password123",
+      });
+    expect(res.statusCode).toBe(200);
+    expect(res.body).toHaveProperty("token");
+    token = res.body.token;
   });
 
-  console.log('Fetched user:', fetchedUser);
-
-  // Optional Step 4: Delete user after test
-  await prisma.user.delete({ where: { email: 'testuser@example.com' } });
-  console.log('Test user deleted');
-}
-
-main()
-  .catch((e) => {
-    console.error('Error:', e);
-  })
-  .finally(() => {
-    prisma.$disconnect();
+  it("should fail login with wrong password", async () => {
+    const res = await request(app)
+      .post("/auth/login")
+      .send({
+        email: "test@example.com",
+        password: "wrongpassword",
+      });
+    expect(res.statusCode).toBe(401);
   });
+});
+

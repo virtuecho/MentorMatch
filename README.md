@@ -34,5 +34,5 @@ npm run generate
 npm run mitigate
 
 8. Testing<br>
-npm run test-user
+npm test
 
