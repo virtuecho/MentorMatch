@@ -1,6 +1,9 @@
 const express = require('express');
 const bodyParser = require('body-parser');
+
 const authRoutes = require('./routes/auth');
+const mentorRoutes = require('./routes/mentor');
+
 const errorHandler = require('./middleware/error');
 
 const app = express();
@@ -10,6 +13,7 @@ app.use(bodyParser.json());
 
 // Routes
 app.use('/auth', authRoutes);
+app.use('/mentors', mentorRoutes);
 
 // Error handler
 app.use(errorHandler);
