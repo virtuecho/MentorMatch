@@ -10,7 +10,7 @@ datasource db {
 model User {
   id                Int                @id @default(autoincrement())
   email             String             @unique
-  isMentorApproved  Boolean            @default(false)
+  isMentorApproved  Boolean            @default(true)
   createdAt         DateTime           @default(now())
   passwordHash      String
   updatedAt         DateTime           @default(now())

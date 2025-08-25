@@ -1,8 +1,9 @@
 const express = require('express');
 const router = express.Router();
-const mentorController = require('../controllers/mentor');
+const { changeRole } = require('../controllers/role');
 const { authenticate } = require('../middleware/auth');
 
-router.get('/search', authenticate, mentorController.searchMentors);
+// Role change route
+router.post('/update', authenticate, changeRole);
 
 module.exports = router;
