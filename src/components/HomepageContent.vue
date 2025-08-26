@@ -115,7 +115,7 @@ export default {
   width: 100%;
   max-width: 1600px;
   margin: 0 auto;
-  padding: 0 160px;
+  padding: 0 5%;
 }
 
 .hero-content {
@@ -208,7 +208,7 @@ export default {
 .process-container {
   max-width: 1600px;
   margin: 0 auto;
-  padding: 0 160px;
+  padding: 0 5%;
 }
 
 .process-header {
@@ -308,10 +308,17 @@ export default {
 }
 
 /* Responsive Design */
+@media (min-width: 1600px) {
+  .hero-container,
+  .process-container {
+    padding: 0 8%;
+  }
+}
+
 @media (max-width: 1200px) {
   .hero-container,
   .process-container {
-    padding: 0 80px;
+    padding: 0 4%;
   }
   
   .process-steps {
@@ -331,7 +338,7 @@ export default {
   
   .hero-container,
   .process-container {
-    padding: 0 20px;
+    padding: 0 3%;
   }
   
   .process-title {

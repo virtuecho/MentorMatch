@@ -23,8 +23,10 @@
             </defs>
           </svg>
         </div>
-        <div class="logo-text" @click="goToHomepage">
-          <h1>MentorMatch</h1>
+        <div class="logo-text">
+          <router-link to="/" class="logo-link">
+            <h1>MentorMatch</h1>
+          </router-link>
         </div>
       </div>
       
@@ -38,12 +40,7 @@
 
 <script>
 export default {
-  name: 'HeaderComponent',
-  methods: {
-    goToHomepage() {
-      this.$router.push('/')
-    }
-  }
+  name: 'HeaderComponent'
 }
 </script>
 
@@ -58,7 +55,7 @@ export default {
 .header-container {
   max-width: 1600px;
   margin: 0 auto;
-  padding: 0 120px;
+  padding: 0 5%;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -85,12 +82,13 @@ export default {
   object-fit: contain;
 }
 
-.logo-text {
-  cursor: pointer;
+.logo-link {
+  text-decoration: none;
+  color: inherit;
   transition: opacity 0.2s ease;
 }
 
-.logo-text:hover {
+.logo-link:hover {
   opacity: 0.8;
 }
 
@@ -101,6 +99,7 @@ export default {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   white-space: nowrap;
+  cursor: pointer;
 }
 
 .nav-section {
@@ -111,13 +110,13 @@ export default {
 /* Responsive Design */
 @media (max-width: 1200px) {
   .header-container {
-    padding: 0 60px;
+    padding: 0 4%;
   }
 }
 
 @media (max-width: 768px) {
   .header-container {
-    padding: 0 20px;
+    padding: 0 3%;
   }
   
   .logo-icon {
@@ -127,6 +126,21 @@ export default {
   
   .logo-text h1 {
     font-size: 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .header-container {
+    padding: 0 4%;
+  }
+  
+  .logo-icon {
+    width: 24px;
+    height: 24px;
+  }
+  
+  .logo-text h1 {
+    font-size: 18px;
   }
 }
 </style>
