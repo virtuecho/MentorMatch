@@ -227,7 +227,7 @@ export default {
 .process-steps {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 30px;
+  gap: 24px;
   max-width: 1600px;
   margin: 0 auto;
 }
@@ -236,9 +236,13 @@ export default {
   background: white;
   border: 1px solid #e5e7eb;
   border-radius: 16px;
-  padding: 40px;
+  padding: 40px 30px;
   transition: all 0.3s ease;
   text-align: center;
+  display: flex;
+  flex-direction: column;
+  height: 380px;
+  box-sizing: border-box;
 }
 
 .process-step:hover {
@@ -264,18 +268,42 @@ export default {
 }
 
 .step-title {
-  font-size: 24px;
+  font-size: 22px;
   font-weight: 600;
   color: #1f2937;
-  margin: 0 0 16px 0;
+  margin: 0 0 20px 0;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1.3;
+}
+
+.step-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  height: 100%;
 }
 
 .step-description {
-  font-size: 16px;
+  font-size: 15px;
   color: #6b7280;
   line-height: 1.6;
   margin: 0;
+  text-align: left;
+  hyphens: auto;
+  word-wrap: break-word;
+  height: 200px;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 8;
+  -webkit-box-orient: vertical;
 }
 
 /* Responsive Design */
@@ -312,6 +340,24 @@ export default {
   .process-steps {
     grid-template-columns: 1fr;
     gap: 24px;
+  }
+  
+  .step-title {
+    font-size: 20px;
+    white-space: normal;
+    text-align: center;
+    margin: 0 0 16px 0;
+  }
+  
+  .step-description {
+    font-size: 14px;
+    text-align: center;
+  }
+  
+  .process-step {
+    height: 300px;
+    padding: 30px 20px;
+    box-sizing: border-box;
   }
   
   .hero-buttons {
