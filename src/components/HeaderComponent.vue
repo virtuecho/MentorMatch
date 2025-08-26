@@ -49,7 +49,7 @@ export default {
   width: 100%;
   background: #ffffff;
   border-bottom: 1px solid #e5e7eb;
-  padding: 16px 0;
+  padding: 1px 0;
 }
 
 .header-container {
