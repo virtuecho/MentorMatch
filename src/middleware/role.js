@@ -1,8 +1,9 @@
-function checkRole(requiredRole) {
+exports.checkRole = (requiredRole) => {
   return (req, res, next) => {
-    if (req.user.role !== requiredRole) {
-      return res.status(403).json({ error: 'Access denied for current role' });
+    if (req.user?.role !== requiredRole) {
+      return res.status(403).json({ error: `Access denied: ${requiredRole} role required` });
     }
     next();
   };
-}
+};
+
