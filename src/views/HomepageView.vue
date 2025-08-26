@@ -22,6 +22,6 @@ export default {
 .homepage-view {
   width: 100%;
   min-height: 100vh;
-  background: #ffffff;
+  background: #F7FAFC;
 }
 </style>
