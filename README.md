@@ -31,7 +31,7 @@ docker compose up -d
 npm run generate
 
 7. Run mitigation to set up the database schema<br>
-npm run mitigate
+npm run migrate
 
 8. Testing<br>
 npm test

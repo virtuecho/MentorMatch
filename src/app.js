@@ -2,9 +2,10 @@ const express = require('express');
 const bodyParser = require('body-parser');
 
 const authRoutes = require('./routes/auth');
-const roleRoutes = require('./routes/role')
+const roleRoutes = require('./routes/role');
 const mentorRoutes = require('./routes/mentor');
 const availabilityRoutes = require('./routes/availability');
+const bookingRoutes = require('./routes/booking');
 
 const errorHandler = require('./middleware/error');
 
@@ -18,6 +19,7 @@ app.use('/auth', authRoutes);
 app.use('/role', roleRoutes)
 app.use('/mentor', mentorRoutes);
 app.use('/availability', availabilityRoutes);
+app.use('/booking', bookingRoutes);
 
 // Error handler
 app.use(errorHandler);

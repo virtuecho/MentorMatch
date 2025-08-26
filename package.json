@@ -6,7 +6,7 @@
   "scripts": {
     "test": "jest",
     "generate": "npx prisma generate",
-    "mitigate": "npx prisma migrate dev --name init",
+    "migrate": "npx prisma migrate dev --name init",
     "dev": "node src/server.js"
   },
   "repository": {
