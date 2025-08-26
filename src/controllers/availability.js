@@ -7,12 +7,6 @@ exports.createAvailability = async (req, res) => {
     const { startTime, endTime } = req.body;
     const mentorId = req.user.id;
 
-    // Validate user is mentor
-    const user = await prisma.user.findUnique({ where: { id: mentorId } });
-    if (user.role !== 'mentor') {
-      return res.status(403).json({ error: 'Only mentors can create availability slots' });
-    }
-
     // Time validity
     if (new Date(startTime) >= new Date(endTime)) {
       return res.status(400).json({ error: 'End time must be after start time' });
@@ -55,13 +49,45 @@ exports.getMyAvailability = async (req, res) => {
   }
 };
 
+exports.getMentorAvailability = async (req, res) => {
+  try {
+    const { mentorId } = req.params;
+    
+    // Verify the mentor exists and is approved
+    const mentor = await prisma.user.findUnique({
+      where: { 
+        id: parseInt(mentorId),
+        role: 'mentor',
+        isMentorApproved: true
+      }
+    });
+
+    if (!mentor) {
+      return res.status(404).json({ error: 'Mentor not found' });
+    }
+
+    const slots = await prisma.availabilitySlot.findMany({
+      where: { 
+        mentorId: parseInt(mentorId),
+        isBooked: false
+      },
+      orderBy: { startTime: 'asc' }
+    });
+
+    res.json(slots);
+  } catch (err) {
+    console.error('Get mentor availability error:', err);
+    res.status(500).json({ error: 'Failed to fetch mentor availability' });
+  }
+};
+
 // Delete availble time slot
 exports.deleteAvailability = async (req, res) => {
   try {
     const { slotId } = req.params;
     const mentorId = req.user.id;
 
-    // Validate mentor has the time slot
+    // Verify the slot belongs to the current user
     const slot = await prisma.availabilitySlot.findFirst({
       where: { id: parseInt(slotId), mentorId }
     });
