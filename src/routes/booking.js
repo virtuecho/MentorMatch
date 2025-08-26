@@ -1,8 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const bookingController = require('../controllers/booking');
-const { authenticate } = require('../middleware/authenticate');
-const { checkRole } = require('../middleware/checkRole');
+const { authenticate } = require('../middleware/auth');
+const { checkRole } = require('../middleware/role');
 
 // Mentee creates booking
 router.post('/create', authenticate, checkRole('mentee'), bookingController.createBooking);
