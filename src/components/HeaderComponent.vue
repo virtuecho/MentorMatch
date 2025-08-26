@@ -34,9 +34,9 @@ export default {
 }
 
 .header-container {
-  max-width: 1200px;
+  max-width: 1600px;
   margin: 0 auto;
-  padding: 0 24px;
+  padding: 0 120px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -49,11 +49,12 @@ export default {
 }
 
 .logo-icon {
-  width: 24px;
-  height: 24px;
+  width: 32px;
+  height: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
 }
 
 .logo-icon img {
@@ -63,15 +64,38 @@ export default {
 }
 
 .logo-text h1 {
-  font-size: 20px;
-  font-weight: 600;
+  font-size: 24px;
+  font-weight: 700;
   color: #1f2937;
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  white-space: nowrap;
 }
 
 .nav-section {
   display: flex;
   align-items: center;
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+  .header-container {
+    padding: 0 60px;
+  }
+}
+
+@media (max-width: 768px) {
+  .header-container {
+    padding: 0 20px;
+  }
+  
+  .logo-icon {
+    width: 28px;
+    height: 28px;
+  }
+  
+  .logo-text h1 {
+    font-size: 20px;
+  }
 }
 </style>

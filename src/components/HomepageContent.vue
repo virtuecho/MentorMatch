@@ -73,7 +73,7 @@
           <!-- Step 4 -->
           <div class="process-step">
             <div class="step-icon">
-              <img src="@/assets/icons/chat-icon.svg" alt="Growth" />
+              <img src="@/assets/icons/growth-icon.svg" alt="Growth" />
             </div>
             <div class="step-content">
               <h3 class="step-title">Grow & Improve</h3>
@@ -233,16 +233,18 @@ export default {
 }
 
 .process-step {
-  background: white;
-  border: 1px solid #e5e7eb;
-  border-radius: 16px;
-  padding: 40px 30px;
+  background: #F7FAFC;
+  border: 1px solid #CFDBE8;
+  border-radius: 8px;
+  padding: 16px;
   transition: all 0.3s ease;
-  text-align: center;
+  text-align: left;
   display: flex;
   flex-direction: column;
-  height: 380px;
+  gap: 12px;
+  height: auto;
   box-sizing: border-box;
+  min-height: 200px;
 }
 
 .process-step:hover {
@@ -251,36 +253,30 @@ export default {
 }
 
 .step-icon {
-  width: 64px;
-  height: 64px;
-  background: #f3f4f6;
-  border-radius: 16px;
+  width: 24px;
+  height: 24px;
   display: flex;
   align-items: center;
-  justify-content: center;
-  margin: 0 auto 30px auto;
+  justify-content: flex-start;
+  margin: 0;
+  flex-shrink: 0;
 }
 
 .step-icon img {
-  width: 32px;
-  height: 32px;
+  width: 24px;
+  height: 24px;
   object-fit: contain;
 }
 
 .step-title {
-  font-size: 22px;
-  font-weight: 600;
-  color: #1f2937;
-  margin: 0 0 20px 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  min-height: 28px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  line-height: 1.3;
+  font-size: 16px;
+  font-weight: 700;
+  color: #0D141C;
+  margin: 0;
+  font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  line-height: 1.25;
+  text-align: left;
+  flex-shrink: 0;
 }
 
 .step-content {
@@ -292,18 +288,14 @@ export default {
 }
 
 .step-description {
-  font-size: 15px;
-  color: #6b7280;
-  line-height: 1.6;
+  font-size: 14px;
+  color: #4D7399;
+  line-height: 1.5;
   margin: 0;
   text-align: left;
-  hyphens: auto;
-  word-wrap: break-word;
-  height: 200px;
-  overflow: hidden;
-  display: -webkit-box;
-  -webkit-line-clamp: 8;
-  -webkit-box-orient: vertical;
+  font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-weight: 400;
+  flex: 1;
 }
 
 /* Responsive Design */
@@ -343,21 +335,21 @@ export default {
   }
   
   .step-title {
-    font-size: 20px;
-    white-space: normal;
-    text-align: center;
-    margin: 0 0 16px 0;
+    font-size: 16px;
+    text-align: left;
+    margin: 0;
   }
   
   .step-description {
     font-size: 14px;
-    text-align: center;
+    text-align: left;
   }
   
   .process-step {
-    height: 300px;
-    padding: 30px 20px;
+    min-height: 180px;
+    padding: 16px;
     box-sizing: border-box;
+    gap: 12px;
   }
   
   .hero-buttons {
