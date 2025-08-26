@@ -1,25 +1,25 @@
 <template>
-  <div class="homepage-view">
+  <div class="login-view">
     <HeaderComponent />
-    <HomepageContent />
+    <LoginViewContent />
   </div>
 </template>
 
 <script>
 import HeaderComponent from '@/components/HeaderComponent.vue'
-import HomepageContent from '@/components/HomepageContent.vue'
+import LoginViewContent from '@/components/LoginViewContent.vue'
 
 export default {
-  name: 'HomepageView',
+  name: 'LoginView',
   components: {
     HeaderComponent,
-    HomepageContent
+    LoginViewContent
   }
 }
 </script>
 
 <style scoped>
-.homepage-view {
+.login-view {
   width: 100%;
   min-height: 100vh;
   background: #F7FAFC;
