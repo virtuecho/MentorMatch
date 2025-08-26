@@ -13,7 +13,7 @@
             </p>
           </div>
           <div class="hero-buttons">
-            <button class="btn-primary">Sign Up</button>
+            <router-link to="/signup" class="btn-primary">Sign Up</router-link>
             <button class="btn-secondary">Log In</button>
           </div>
         </div>
@@ -164,11 +164,16 @@ export default {
   cursor: pointer;
   transition: all 0.2s ease;
   min-width: 140px;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .btn-primary:hover {
   background: #2563eb;
   transform: translateY(-1px);
+  color: white;
 }
 
 .btn-secondary {
