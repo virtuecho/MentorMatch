@@ -26,6 +26,11 @@ app.use('/mentor', mentorRoutes);
 app.use('/availability', availabilityRoutes);
 app.use('/booking', bookingRoutes);
 
+// Confirm backend API
+app.get('/', (req, res) => {
+  res.json({ status: 'ok', message: 'API is live' });
+});
+
 // Error handler
 app.use(errorHandler);
 
