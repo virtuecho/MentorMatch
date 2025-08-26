@@ -4,7 +4,7 @@ const prisma = new PrismaClient();
 // This function can be accessed by mentee to book a mentor
 exports.createBooking = async (req, res) => {
   try {
-    const { availabilitySlotId } = req.body;
+    const { availabilitySlotId, locationDetails } = req.body;
     const userId = req.user.id;
 
     const slot = await prisma.availabilitySlot.findUnique({ where: { id: availabilitySlotId } });
@@ -18,6 +18,9 @@ exports.createBooking = async (req, res) => {
         menteeId: userId,
         mentorId: slot.mentorId,
         availabilitySlotId,
+        topic: 'academic topic',
+        locationType: 'in_person',
+        locationDetails: locationDetails || '',
         status: 'pending'
         }
     });
@@ -58,11 +61,16 @@ exports.cancelBooking = async (req, res) => {
 // This function can be accessed by mentor to respond to bookings one at a time
 exports.respondToBooking = async (req, res) => {
   try {
-    const bookingId = req.params.id;
+    const bookingId = parseInt(req.params.id);
+    const mentorId = req.user.id;
     const { response } = req.body;
 
-    if (!['accepted', 'rejected'].includes(response)) {
-        return res.status(400).json({ error: 'Invalid response. Must be accepted or rejected.' });
+    if (!bookingId || isNaN(bookingId)) {
+      return res.status(400).json({ error: 'Invalid booking ID', bookingId });
+    }
+
+    if (!['confirmed', 'rejected'].includes(response)) {
+        return res.status(400).json({ error: 'Invalid response. Must be confirmed or rejected.' });
     }
 
     const booking = await prisma.booking.findUnique({ where: { id: bookingId } });
