@@ -19,7 +19,7 @@ exports.register = async (req, res) => {
         email, 
         passwordHash: hashedPassword, 
         role: role || 'mentee',
-        profile: { create: { fullName } }
+        profile: { create: { fullName: fullName || 'default-user' } }
       },
       include: { profile: true }
     });
