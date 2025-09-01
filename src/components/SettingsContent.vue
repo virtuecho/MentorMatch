@@ -1,0 +1,334 @@
+<template>
+  <div class="settings-content">
+    <div class="settings-container">
+      <h1 class="settings-title">Settings</h1>
+      
+      <div class="settings-card">
+        <!-- Account Section -->
+        <div class="settings-section">
+          <h2 class="section-title">Account</h2>
+          
+          <!-- Email Field -->
+          <div class="email-section">
+            <label class="field-label">Email</label>
+            <div class="email-input">
+              <input 
+                type="email" 
+                value="johndoe@mail.email" 
+                readonly 
+                class="email-field"
+              />
+            </div>
+          </div>
+          
+          <!-- Change Password Link -->
+          <div class="password-section">
+            <a href="#" class="change-password-link">Change Password</a>
+          </div>
+        </div>
+        
+        <div class="section-divider"></div>
+        
+        <!-- Mentor Mode Section -->
+        <div class="settings-section">
+          <h2 class="section-title">Mentor Mode</h2>
+          
+          <div class="mentor-mode-row">
+            <div class="mentor-mode-info">
+              <h3 class="mentor-mode-title">Mentor Mode</h3>
+              <p class="mentor-mode-description">
+                Enable this to appear in search results for mentees
+              </p>
+            </div>
+            
+            <div class="switch-container">
+              <label class="switch">
+                <input 
+                  type="checkbox" 
+                  v-model="mentorModeEnabled"
+                  class="switch-input"
+                />
+                <span class="switch-slider"></span>
+              </label>
+            </div>
+          </div>
+        </div>
+        
+        <div class="section-divider"></div>
+        
+        <!-- Account Management Section -->
+        <div class="settings-section">
+          <h2 class="section-title">Account Management</h2>
+          
+          <div class="deactivate-section">
+            <button class="deactivate-btn">
+              Deactivate Account
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+export default {
+  name: 'SettingsContent',
+  data() {
+    return {
+      mentorModeEnabled: true
+    }
+  },
+  watch: {
+    mentorModeEnabled(newValue) {
+      console.log('Mentor Mode:', newValue ? 'Enabled' : 'Disabled')
+      // Here you can add API call to update the setting
+    }
+  }
+}
+</script>
+
+<style scoped>
+.settings-content {
+  background: #eeeeee;
+  min-height: calc(100vh - 64px);
+  padding: 35px 0;
+}
+
+.settings-container {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 35px;
+}
+
+.settings-title {
+  font-family: Inter, sans-serif;
+  font-weight: 700;
+  font-size: 36px;
+  line-height: 1em;
+  color: #000000;
+  margin: 0 0 35px 4px;
+}
+
+.settings-card {
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 47px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.settings-section {
+  margin-bottom: 40px;
+}
+
+.settings-section:last-child {
+  margin-bottom: 0;
+}
+
+.section-title {
+  font-family: Inter, sans-serif;
+  font-weight: 600;
+  font-size: 18px;
+  color: #000000;
+  margin: 0 0 24px 0;
+}
+
+.section-divider {
+  height: 1px;
+  background: #000000;
+  margin: 40px 0;
+  width: 100%;
+  max-width: 788px;
+}
+
+/* Email Section */
+.email-section {
+  margin-bottom: 24px;
+}
+
+.field-label {
+  display: block;
+  font-family: Inter, sans-serif;
+  font-weight: 500;
+  font-size: 14px;
+  color: #0d141c;
+  margin-bottom: 8px;
+}
+
+.email-input {
+  max-width: 400px;
+}
+
+.email-field {
+  width: 100%;
+  padding: 12px 16px;
+  background: #f7fafc;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-family: Inter, sans-serif;
+  font-size: 14px;
+  color: #6b7280;
+  outline: none;
+}
+
+.password-section {
+  margin-top: 16px;
+}
+
+.change-password-link {
+  font-family: Inter, sans-serif;
+  font-size: 14px;
+  color: #3b82f6;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.change-password-link:hover {
+  color: #2563eb;
+  text-decoration: underline;
+}
+
+/* Mentor Mode Section */
+.mentor-mode-row {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 24px;
+}
+
+.mentor-mode-info {
+  flex: 0 0 auto;
+}
+
+.mentor-mode-title {
+  font-family: Inter, sans-serif;
+  font-weight: 600;
+  font-size: 16px;
+  color: #000000;
+  margin: 0 0 8px 0;
+}
+
+.mentor-mode-description {
+  font-family: Inter, sans-serif;
+  font-size: 14px;
+  color: #6b7280;
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* Switch Styles */
+.switch-container {
+  flex-shrink: 0;
+}
+
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 52px;
+  height: 32px;
+}
+
+.switch-input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.switch-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #e5e7eb;
+  transition: 0.3s;
+  border-radius: 32px;
+}
+
+.switch-slider:before {
+  position: absolute;
+  content: "";
+  height: 24px;
+  width: 24px;
+  left: 4px;
+  bottom: 4px;
+  background-color: white;
+  transition: 0.3s;
+  border-radius: 50%;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.switch-input:checked + .switch-slider {
+  background-color: #3b82f6;
+}
+
+.switch-input:checked + .switch-slider:before {
+  transform: translateX(20px);
+}
+
+.switch-slider:hover {
+  box-shadow: 0 0 0 8px rgba(59, 130, 246, 0.1);
+}
+
+/* Deactivate Section */
+.deactivate-section {
+  margin-top: 24px;
+}
+
+.deactivate-btn {
+  background: #ef4444;
+  color: white;
+  border: none;
+  border-radius: 15px;
+  padding: 12px 24px;
+  font-family: Inter, sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.deactivate-btn:hover {
+  background: #dc2626;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .settings-container {
+    padding: 0 20px;
+  }
+  
+  .settings-card {
+    padding: 24px;
+  }
+  
+  .settings-title {
+    font-size: 28px;
+  }
+  
+  .mentor-mode-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+  
+  .switch-container {
+    align-self: flex-end;
+  }
+}
+
+@media (max-width: 480px) {
+  .settings-container {
+    padding: 0 16px;
+  }
+  
+  .settings-card {
+    padding: 20px;
+  }
+  
+  .settings-title {
+    font-size: 24px;
+  }
+}
+</style>

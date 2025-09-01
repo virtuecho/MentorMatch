@@ -69,9 +69,9 @@
         </div>
         
         <!-- Control Buttons -->
-        <div class="control-buttons">
+        <div class="control-buttons" v-if="showControlButtons">
           <!-- Settings Button -->
-          <button class="control-btn settings-btn">
+          <button class="control-btn settings-btn" @click="goToSettings">
             <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
               <path d="M10 12.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z" stroke="#6B7280" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
               <path d="M16.167 12.5a1.375 1.375 0 0 0 .275 1.517l.05.05a1.667 1.667 0 1 1-2.359 2.358l-.05-.05a1.375 1.375 0 0 0-1.516-.275 1.375 1.375 0 0 0-.834 1.258v.142a1.667 1.667 0 0 1-3.333 0V17a1.375 1.375 0 0 0-.9-1.258 1.375 1.375 0 0 0-1.517.275l-.05.05a1.667 1.667 0 1 1-2.358-2.359l.05-.05A1.375 1.375 0 0 0 3.9 12.142 1.375 1.375 0 0 0 2.642 11.5H2.5a1.667 1.667 0 0 1 0-3.333H2.642A1.375 1.375 0 0 0 3.9 7.333a1.375 1.375 0 0 0-.275-1.516l-.05-.05a1.667 1.667 0 1 1 2.358-2.359l.05.05a1.375 1.375 0 0 0 1.517.275H7.5a1.375 1.375 0 0 0 1.258-.9V2.5a1.667 1.667 0 0 1 3.334 0v.142a1.375 1.375 0 0 0 .833 1.258 1.375 1.375 0 0 0 1.517-.275l.05-.05a1.667 1.667 0 1 1 2.358 2.358l-.05.05a1.375 1.375 0 0 0-.275 1.517v0a1.375 1.375 0 0 0 1.259.833H17.5a1.667 1.667 0 0 1 0 3.334h-.142a1.375 1.375 0 0 0-1.258.833v0Z" stroke="#6B7280" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
@@ -112,6 +112,14 @@ export default {
   computed: {
     showSearchBar() {
       return this.$route.path === '/dashboard'
+    },
+    showControlButtons() {
+      return this.$route.path === '/dashboard' || this.$route.path === '/settings'
+    }
+  },
+  methods: {
+    goToSettings() {
+      this.$router.push('/settings')
     }
   },
   emits: ['search', 'tab-change']
