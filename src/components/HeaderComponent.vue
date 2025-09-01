@@ -31,7 +31,7 @@
       </div>
       
       <!-- Center Search Section -->
-      <div class="center-search">
+      <div class="center-search" v-if="showSearchBar">
         <div class="search-container">
           <div class="search-input-wrapper">
             <svg class="search-icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
@@ -107,6 +107,11 @@ export default {
   data() {
     return {
       searchQuery: ''
+    }
+  },
+  computed: {
+    showSearchBar() {
+      return this.$route.path === '/dashboard'
     }
   },
   emits: ['search', 'tab-change']
