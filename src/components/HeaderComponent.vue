@@ -78,13 +78,34 @@
             </svg>
           </button>
           
-          <!-- Profile Button -->
-          <button class="control-btn profile-btn" @click="goToProfile">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-              <path d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10Z" stroke="#6B7280" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-              <path d="M20.59 22c0-3.87-3.85-7-8.59-7s-8.59 3.13-8.59 7" stroke="#6B7280" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-          </button>
+          <!-- Profile Button with Dropdown -->
+          <div class="profile-dropdown" @mouseenter="showDropdown = true" @mouseleave="showDropdown = false">
+            <button class="control-btn profile-btn">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                <path d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10Z" stroke="#6B7280" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M20.59 22c0-3.87-3.85-7-8.59-7s-8.59 3.13-8.59 7" stroke="#6B7280" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </button>
+            
+            <!-- Dropdown Menu -->
+            <div class="dropdown-menu" v-show="showDropdown">
+              <div class="dropdown-item" @click="goToProfile">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                  <path d="M8 8a3.333 3.333 0 1 0 0-6.667A3.333 3.333 0 0 0 8 8Z" stroke="#374151" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+                  <path d="M13.727 14.667c0-2.58-2.567-4.667-5.727-4.667s-5.727 2.087-5.727 4.667" stroke="#374151" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <span>Profile</span>
+              </div>
+              <div class="dropdown-item" @click="logout">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                  <path d="M6 14H3.333A1.333 1.333 0 0 1 2 12.667V3.333A1.333 1.333 0 0 1 3.333 2H6" stroke="#374151" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+                  <path d="M10.667 11.333 14 8l-3.333-3.333" stroke="#374151" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+                  <path d="M14 8H6" stroke="#374151" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <span>Logout</span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -106,7 +127,8 @@ export default {
   },
   data() {
     return {
-      searchQuery: ''
+      searchQuery: '',
+      showDropdown: false
     }
   },
   computed: {
@@ -122,7 +144,15 @@ export default {
       this.$router.push('/settings')
     },
     goToProfile() {
+      this.showDropdown = false
       this.$router.push('/profile')
+    },
+    logout() {
+      this.showDropdown = false
+      // 这里可以添加登出逻辑，比如清除token、用户数据等
+      // localStorage.removeItem('token')
+      // this.$store.dispatch('auth/logout')
+      this.$router.push('/login')
     }
   },
   emits: ['search', 'tab-change']
@@ -383,5 +413,56 @@ export default {
   .control-btn {
     padding: 6px;
   }
+}
+
+/* Profile Dropdown Styles */
+.profile-dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.dropdown-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  min-width: 120px;
+  z-index: 1000;
+  margin-top: 4px;
+  overflow: hidden;
+}
+
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  font-size: 14px;
+  color: #374151;
+  border: none;
+  background: none;
+  width: 100%;
+  text-align: left;
+}
+
+.dropdown-item:hover {
+  background-color: #f3f4f6;
+}
+
+.dropdown-item:not(:last-child) {
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.dropdown-item svg {
+  flex-shrink: 0;
+}
+
+.dropdown-item span {
+  font-weight: 500;
 }
 </style>
