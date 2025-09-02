@@ -402,20 +402,7 @@ export default {
   overflow: hidden;
 }
 
-.mentor-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
-  transition: left 0.5s;
-}
 
-.mentor-card:hover::before {
-  left: 100%;
-}
 
 .mentor-card:hover {
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
@@ -445,7 +432,7 @@ export default {
 }
 
 .mentor-card:hover .mentor-avatar {
-  transform: scale(1.1) rotate(5deg);
+  transform: scale(1.05);
 }
 
 .mentor-card:hover .mentor-avatar::after {
@@ -503,26 +490,12 @@ export default {
   overflow: hidden;
 }
 
-.mentor-tag::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.6), transparent);
-  transition: left 0.5s;
-}
 
-.mentor-card:hover .mentor-tag::before {
-  left: 100%;
-}
 
 .mentor-tag:hover {
-  background: linear-gradient(135deg, #1f2937 0%, #374151 100%);
-  color: #ffffff;
-  transform: translateY(-2px) scale(1.05);
-  box-shadow: 0 4px 12px rgba(31, 41, 55, 0.2);
+  background: #e5e7eb;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 @keyframes tagFadeIn {
@@ -560,20 +533,7 @@ export default {
   overflow: hidden;
 }
 
-.book-btn::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-  transition: left 0.5s;
-}
 
-.book-btn:hover::before {
-  left: 100%;
-}
 
 .book-btn:hover {
   background: linear-gradient(135deg, #374151 0%, #4b5563 100%);

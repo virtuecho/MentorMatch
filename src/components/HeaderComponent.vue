@@ -79,7 +79,7 @@
           </button>
           
           <!-- Profile Button -->
-          <button class="control-btn profile-btn">
+          <button class="control-btn profile-btn" @click="goToProfile">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
               <path d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10Z" stroke="#6B7280" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
               <path d="M20.59 22c0-3.87-3.85-7-8.59-7s-8.59 3.13-8.59 7" stroke="#6B7280" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
@@ -114,12 +114,15 @@ export default {
       return this.$route.path === '/dashboard'
     },
     showControlButtons() {
-      return this.$route.path === '/dashboard' || this.$route.path === '/settings'
+      return this.$route.path === '/dashboard' || this.$route.path === '/settings' || this.$route.path === '/profile'
     }
   },
   methods: {
     goToSettings() {
       this.$router.push('/settings')
+    },
+    goToProfile() {
+      this.$router.push('/profile')
     }
   },
   emits: ['search', 'tab-change']

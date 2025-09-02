@@ -14,9 +14,9 @@
             <div class="email-input">
               <input 
                 type="email" 
-                value="johndoe@mail.email" 
-                readonly 
+                v-model="userEmail"
                 class="email-field"
+                placeholder="Enter your email address"
               />
             </div>
           </div>
@@ -35,7 +35,6 @@
           
           <div class="mentor-mode-row">
             <div class="mentor-mode-info">
-              <h3 class="mentor-mode-title">Mentor Mode</h3>
               <p class="mentor-mode-description">
                 Enable this to appear in search results for mentees
               </p>
@@ -76,7 +75,8 @@ export default {
   name: 'SettingsContent',
   data() {
     return {
-      mentorModeEnabled: true
+      mentorModeEnabled: true,
+      userEmail: 'johndoe@mail.email'
     }
   },
   watch: {
@@ -162,13 +162,28 @@ export default {
 .email-field {
   width: 100%;
   padding: 12px 16px;
-  background: #f7fafc;
+  background: #ffffff;
   border: 1px solid #d1d5db;
   border-radius: 8px;
   font-family: Inter, sans-serif;
   font-size: 14px;
-  color: #6b7280;
+  color: #374151;
   outline: none;
+  transition: all 0.2s ease;
+}
+
+.email-field:hover {
+  border-color: #9ca3af;
+}
+
+.email-field:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  background: #ffffff;
+}
+
+.email-field::placeholder {
+  color: #9ca3af;
 }
 
 .password-section {
@@ -198,14 +213,6 @@ export default {
 
 .mentor-mode-info {
   flex: 0 0 auto;
-}
-
-.mentor-mode-title {
-  font-family: Inter, sans-serif;
-  font-weight: 600;
-  font-size: 16px;
-  color: #000000;
-  margin: 0 0 8px 0;
 }
 
 .mentor-mode-description {
