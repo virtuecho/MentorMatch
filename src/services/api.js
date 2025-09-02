@@ -1,8 +1,8 @@
-// src/services/api.js
+
 import axios from "axios";
 
 const API = axios.create({
-    baseURL: "https://networking-companion-backend.onrender.com",
+    baseURL: "https://networking-companion-backend.onrender.com", // should hide the api in an .env
     headers: {
         "Content-Type": "application/json"
     }
@@ -10,11 +10,21 @@ const API = axios.create({
 
 // Automatically attach token if it exists
 API.interceptors.request.use((config) => {
-    const token = "comp30022_G37_X2Nvbm5lY3Rpb25fbGlmZXRpbWU9MCZwb29sX3RpbW";
+    const token = localStorage.getItem("authToken");
     if (token) {
         config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
 });
+
+// Catch backend error globally
+API.interceptors.response.use(
+    response => response,
+    error => {
+        console.error("API error:", error.response?.data || error.message);
+        // Optionally redirect to login or show toast
+        return Promise.reject(error);
+    }
+);
 
 export default API;
