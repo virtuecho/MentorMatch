@@ -98,3 +98,49 @@ exports.respondToBooking = async (req, res) => {
     res.status(500).json({ error: 'Failed to update booking status' });
   }
 };
+
+// Get booking history for a user
+exports.getBookingHistory = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { role } = req.query; // 'mentor' or 'mentee'
+    
+    // Validate role
+    if (!role || (role !== 'mentor' && role !== 'mentee')) {
+      return res.status(400).json({ error: 'Invalid role parameter. Must be "mentor" or "mentee".' });
+    }
+    
+    // Determine which field to filter by based on role
+    const filterField = role === 'mentor' ? 'mentorId' : 'menteeId';
+    
+    // Get confirmed bookings that have ended
+    const bookings = await prisma.booking.findMany({
+      where: {
+        [filterField]: userId,
+        status: 'confirmed',
+        availabilitySlot: {
+          endTime: { lt: new Date() } // Only ended bookings
+        }
+      },
+      include: {
+        availabilitySlot: true,
+        mentor: {
+          include: { profile: true }
+        },
+        mentee: {
+          include: { profile: true }
+        }
+      },
+      orderBy: {
+        availabilitySlot: {
+          startTime: 'desc'
+        }
+      }
+    });
+    
+    res.json(bookings);
+  } catch (err) {
+    console.error('Get booking history error:', err);
+    res.status(500).json({ error: 'Failed to fetch booking history' });
+  }
+};
