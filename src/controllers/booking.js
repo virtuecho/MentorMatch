@@ -125,10 +125,24 @@ exports.getBookingHistory = async (req, res) => {
       include: {
         availabilitySlot: true,
         mentor: {
-          include: { profile: true }
+          include: { 
+            profile: {
+              select: {
+                fullName: true,
+                profileImageUrl: true
+              }
+            }
+          }
         },
         mentee: {
-          include: { profile: true }
+          include: { 
+            profile: {
+              select: {
+                fullName: true,
+                profileImageUrl: true
+              }
+            }
+          }
         }
       },
       orderBy: {
@@ -138,7 +152,27 @@ exports.getBookingHistory = async (req, res) => {
       }
     });
     
-    res.json(bookings);
+    // Formatted
+    const formattedBookings = bookings.map(booking => ({
+      id: booking.id,
+      topic: booking.topic,
+      startTime: booking.availabilitySlot.startTime,
+      endTime: booking.availabilitySlot.endTime,
+      locationType: booking.locationType,
+      locationDetails: booking.locationDetails,
+      mentor: {
+        id: booking.mentor.id,
+        fullName: booking.mentor.profile?.fullName,
+        profileImageUrl: booking.mentor.profile?.profileImageUrl
+      },
+      mentee: {
+        id: booking.mentee.id,
+        fullName: booking.mentee.profile?.fullName,
+        profileImageUrl: booking.mentee.profile?.profileImageUrl
+      }
+    }));
+    
+    res.json(formattedBookings);
   } catch (err) {
     console.error('Get booking history error:', err);
     res.status(500).json({ error: 'Failed to fetch booking history' });
