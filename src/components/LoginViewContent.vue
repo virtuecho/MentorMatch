@@ -59,12 +59,13 @@ export default {
   },
   methods: {
     handleLogin() {
-      // 登录逻辑处理
+      // Login logic processing
       console.log('Login attempt:', {
         email: this.email,
         password: this.password
       })
-      // 这里可以添加实际的登录API调用
+      // The actual login API call can be added here
+
     }
   }
 }

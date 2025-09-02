@@ -5,6 +5,7 @@ import LoginView from '../views/LoginView.vue'
 import MenteeDashboard from '../views/MenteeDashboard.vue'
 import SettingsView from '../views/SettingsView.vue'
 import ProfileView from '../views/ProfileView.vue'
+import MyBookingsView from '../views/MyBookingsView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -38,6 +39,11 @@ const router = createRouter({
       path: '/profile',
       name: 'profile',
       component: ProfileView
+    },
+    {
+      path: '/my-bookings',
+      name: 'my-bookings',
+      component: MyBookingsView
     }
   ]
 })

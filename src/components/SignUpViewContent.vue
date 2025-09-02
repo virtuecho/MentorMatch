@@ -92,6 +92,8 @@
 </template>
 
 <script>
+import { register } from '@/services/auth';
+
 export default {
   name: 'SignUpViewContent',
   data() {
@@ -106,7 +108,7 @@ export default {
     }
   },
   methods: {
-    handleSignUp() {
+    async handleSignUp() {
       // Validate passwords match
       if (this.formData.password !== this.formData.confirmPassword) {
         alert('Passwords do not match!');
@@ -115,6 +117,8 @@ export default {
       
       // Handle sign up logic here
       console.log('Sign up data:', this.formData);
+      const res = await register(this.formData.name, this.formData.email, this.formData.password, 'mentee');
+      console.log(res);
       alert('Sign up successful! (This is a demo)');
     }
   }

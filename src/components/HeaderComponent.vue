@@ -54,15 +54,15 @@
         <div class="nav-tabs" v-if="showTabs">
           <button 
             class="tab-button" 
-            :class="{ active: activeTab === 'sessions' }"
+            :class="{ active: $route.path === '/dashboard' }"
             @click="$emit('tab-change', 'sessions')"
           >
             My Sessions
           </button>
           <button 
             class="tab-button" 
-            :class="{ active: activeTab === 'bookings' }"
-            @click="$emit('tab-change', 'bookings')"
+            :class="{ active: $route.path === '/my-bookings' }"
+            @click="goToMyBookings"
           >
             My Bookings
           </button>
@@ -136,12 +136,15 @@ export default {
       return this.$route.path === '/dashboard'
     },
     showControlButtons() {
-      return this.$route.path === '/dashboard' || this.$route.path === '/settings' || this.$route.path === '/profile'
+      return this.$route.path === '/dashboard' || this.$route.path === '/settings' || this.$route.path === '/profile' || this.$route.path === '/my-bookings'
     }
   },
   methods: {
     goToSettings() {
       this.$router.push('/settings')
+    },
+    goToMyBookings() {
+      this.$router.push('/my-bookings')
     },
     goToProfile() {
       this.showDropdown = false
@@ -338,12 +341,7 @@ export default {
 
 @media (max-width: 768px) {
   .header-container {
-    padding: 0 3%;
-  }
-  
-  .logo-icon {
-    width: 28px;
-    height: 28px;
+    padding: 0 4%;
   }
   
   .logo-text h1 {
@@ -358,16 +356,18 @@ export default {
     max-width: 200px;
   }
   
+  .right-section {
+    gap: 12px;
+  }
+  
   .nav-tabs {
     gap: 12px;
   }
   
   .tab-button {
     font-size: 13px;
-  }
-  
-  .right-section {
-    gap: 12px;
+    padding: 6px 16px;
+    white-space: nowrap;
   }
 }
 
@@ -376,6 +376,12 @@ export default {
     padding: 0 4%;
     flex-wrap: wrap;
     gap: 8px;
+    align-items: flex-start;
+  }
+  
+  .logo-section {
+    flex: 1;
+    min-width: 0;
   }
   
   .logo-icon {
@@ -385,6 +391,38 @@ export default {
   
   .logo-text h1 {
     font-size: 18px;
+  }
+  
+  .right-section {
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 8px;
+    min-width: fit-content;
+  }
+  
+  .nav-tabs {
+    gap: 8px;
+    order: 2;
+    display: flex;
+    justify-content: flex-end;
+  }
+  
+  .tab-button {
+    font-size: 12px;
+    padding: 6px 12px;
+    white-space: nowrap;
+    min-width: 80px;
+    text-align: center;
+  }
+  
+  .control-buttons {
+    gap: 6px;
+    order: 1;
+    display: flex;
+  }
+  
+  .control-btn {
+    padding: 6px;
   }
   
   .center-search {
@@ -397,21 +435,46 @@ export default {
   .search-container {
     max-width: none;
   }
-  
-  .right-section {
-    gap: 8px;
-  }
-  
-  .nav-tabs {
-    display: none;
-  }
-  
-  .control-buttons {
+}
+
+@media (max-width: 360px) {
+  .header-container {
+    padding: 0 3%;
     gap: 6px;
   }
   
+  .logo-text h1 {
+    font-size: 16px;
+  }
+  
+  .right-section {
+    gap: 6px;
+  }
+  
+  .nav-tabs {
+    gap: 4px;
+    flex-direction: column;
+    align-items: flex-end;
+  }
+  
+  .tab-button {
+    font-size: 11px;
+    padding: 4px 8px;
+    min-width: 70px;
+    width: auto;
+  }
+  
+  .control-buttons {
+    gap: 4px;
+  }
+  
   .control-btn {
-    padding: 6px;
+    padding: 4px;
+  }
+  
+  .control-btn svg {
+    width: 18px;
+    height: 18px;
   }
 }
 
