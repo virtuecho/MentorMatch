@@ -116,10 +116,19 @@ export default {
       }
       
       // Handle sign up logic here
-      console.log('Sign up data:', this.formData);
-      const res = await register(this.formData.name, this.formData.email, this.formData.password, 'mentee');
-      console.log(res);
-      alert('Sign up successful! (This is a demo)');
+      try {
+        const res = await register(
+          this.formData.email,
+          this.formData.password,
+          this.formData.name || undefined,
+          undefined  // Role will be set to 'mentee' by backend default
+        );
+        console.log(res.data);
+        alert('Sign up successful!');
+      } catch (err) {
+        console.error(err);
+        alert(err.response?.data?.message || 'Registration failed');
+      }
     }
   }
 }
