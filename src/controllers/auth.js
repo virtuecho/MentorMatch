@@ -70,3 +70,55 @@ exports.getProfile = async (req, res) => {
     res.status(500).json({ error: 'Could not fetch profile' });
   }
 };
+
+// Get public mentor profile accessible by anyone
+exports.getMentorPublicProfile = async (req, res) => {
+  try {
+    const { mentorId } = req.params;
+    
+    const mentor = await prisma.user.findUnique({
+      where: { 
+        id: parseInt(mentorId),
+        isMentorApproved: true
+      },
+      include: {
+        profile: {
+          select: {
+            fullName: true,
+            profileImageUrl: true,
+            bio: true,
+            location: true,
+            linkedinUrl: true,
+            websiteUrl: true
+          }
+        },
+        mentorSkills: {
+          select: {
+            skillName: true
+          }
+        }
+      }
+    });
+
+    if (!mentor) {
+      return res.status(404).json({ error: 'Mentor not found' });
+    }
+
+    // Formatted
+    const publicProfile = {
+      id: mentor.id,
+      fullName: mentor.profile?.fullName,
+      profileImageUrl: mentor.profile?.profileImageUrl,
+      bio: mentor.profile?.bio,
+      location: mentor.profile?.location,
+      linkedinUrl: mentor.profile?.linkedinUrl,
+      websiteUrl: mentor.profile?.websiteUrl,
+      skills: mentor.mentorSkills.map(skill => skill.skillName)
+    };
+
+    res.json(publicProfile);
+  } catch (err) {
+    console.error('Get mentor profile error:', err);
+    res.status(500).json({ error: 'Failed to fetch mentor profile' });
+  }
+};

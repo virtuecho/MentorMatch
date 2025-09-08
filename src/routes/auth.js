@@ -7,5 +7,6 @@ const { authenticate } = require('../middleware/auth');
 router.post('/register', authController.register);
 router.post('/login', authController.login);
 router.get('/profile', authenticate, authController.getProfile)
+router.get('/mentor/:mentorId', authController.getMentorPublicProfile);
 
 module.exports = router;
