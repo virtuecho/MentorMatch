@@ -14,5 +14,10 @@ export const register = (fullName, email, password, role) => {
 export const login = (email, password) =>
     API.post("/auth/login", { email, password });
 
+export const logout = () => {
+    localStorage.removeItem("authToken");
+    return Promise.resolve();
+};
+
 // Profile
 export const getProfile = () => API.get("/auth/profile");

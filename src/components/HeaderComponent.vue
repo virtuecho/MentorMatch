@@ -113,6 +113,8 @@
 </template>
 
 <script>
+import { logout } from '@/services/auth';
+
 export default {
   name: 'HeaderComponent',
   props: {
@@ -151,11 +153,12 @@ export default {
       this.$router.push('/profile')
     },
     logout() {
-      this.showDropdown = false
-      // 这里可以添加登出逻辑，比如清除token、用户数据等
-      // localStorage.removeItem('token')
-      // this.$store.dispatch('auth/logout')
-      this.$router.push('/login')
+      logout().then(() => {
+        this.$router.push('/login');
+      }).catch(error => {
+        console.error("Logout failed:", error);
+        this.$router.push('/login');
+      });
     }
   },
   emits: ['search', 'tab-change']

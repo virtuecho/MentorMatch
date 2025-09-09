@@ -76,7 +76,7 @@ export default {
         localStorage.setItem('authToken', res.data.token);
 
         // Navigate to the next page
-        // Not sure how or where to implement this so leave it to the frontend
+        //this.$router.push('/dashboard');
       } catch (err) {
         console.error("Login failed:", err.response?.data || err.message);
         this.error = err.response?.data?.message || "Login failed. Please try again.";
