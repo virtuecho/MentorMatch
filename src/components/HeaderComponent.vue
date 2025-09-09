@@ -24,7 +24,7 @@
           </svg>
         </div>
         <div class="logo-text">
-          <router-link to="/" class="logo-link">
+          <router-link :to="logoRoute" class="logo-link">
             <h1>MentorMatch</h1>
           </router-link>
         </div>
@@ -137,6 +137,12 @@ export default {
     },
     showControlButtons() {
       return this.$route.path === '/dashboard' || this.$route.path === '/settings' || this.$route.path === '/profile' || this.$route.path === '/my-bookings'
+    },
+    logoRoute() {
+      // 使该计算属性在路由变化时也会重新计算
+      const currentPath = this.$route.path
+      const token = localStorage.getItem('authToken')
+      return token ? '/dashboard' : '/'
     }
   },
   methods: {
@@ -153,7 +159,7 @@ export default {
     logout() {
       this.showDropdown = false
       // 这里可以添加登出逻辑，比如清除token、用户数据等
-      // localStorage.removeItem('token')
+      localStorage.removeItem('authToken')
       // this.$store.dispatch('auth/logout')
       this.$router.push('/login')
     }
