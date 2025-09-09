@@ -76,10 +76,11 @@ export default {
         localStorage.setItem('authToken', res.data.token);
 
         // Navigate to the next page
-        //this.$router.push('/dashboard');
+        const redirect = this.$route.query.redirect || { name: 'dashboard' };
+        this.$router.replace(redirect);
       } catch (err) {
         console.error("Login failed:", err.response?.data || err.message);
-        this.error = err.response?.data?.message || "Login failed. Please try again.";
+        alert(err.response?.data?.message || "Login failed. Please try again.");
       }
     }
   }
