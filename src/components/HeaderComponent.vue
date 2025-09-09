@@ -61,7 +61,7 @@
           </button>
           <button 
             class="tab-button" 
-            :class="{ active: $route.path === '/my-bookings' }"
+            :class="{ active: $route.path === '/my-bookings' || $route.path === '/mentors-bookings' }"
             @click="goToMyBookings"
           >
             My Bookings
@@ -136,7 +136,7 @@ export default {
       return this.$route.path === '/dashboard'
     },
     showControlButtons() {
-      return this.$route.path === '/dashboard' || this.$route.path === '/settings' || this.$route.path === '/profile' || this.$route.path === '/my-bookings'
+      return this.$route.path === '/dashboard' || this.$route.path === '/settings' || this.$route.path === '/profile' || this.$route.path === '/my-bookings' || this.$route.path === '/mentors-bookings'
     },
     logoRoute() {
       // 使该计算属性在路由变化时也会重新计算

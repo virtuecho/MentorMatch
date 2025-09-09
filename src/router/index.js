@@ -6,6 +6,7 @@ import MenteeDashboard from '../views/MenteeDashboard.vue'
 import SettingsView from '../views/SettingsView.vue'
 import ProfileView from '../views/ProfileView.vue'
 import MyBookingsView from '../views/MyBookingsView.vue'
+import MentorsBookingsView from '../views/MentorsBookingsView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -44,6 +45,11 @@ const router = createRouter({
       path: '/my-bookings',
       name: 'my-bookings',
       component: MyBookingsView
+    },
+    {
+      path: '/mentors-bookings',
+      name: 'mentors-bookings',
+      component: MentorsBookingsView
     }
   ]
 })
