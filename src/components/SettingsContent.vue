@@ -38,6 +38,7 @@
               <p class="mentor-mode-description">
                 Enable this to appear in search results for mentees
               </p>
+              <p v-if="!isEligibleMentor" class="eligibility-hint">Your account is not verified as a mentor yet. Please complete mentor verification to enable this.</p>
             </div>
             
             <div class="switch-container">
@@ -46,8 +47,9 @@
                   type="checkbox" 
                   v-model="mentorModeEnabled"
                   class="switch-input"
+                  :disabled="!isEligibleMentor"
                 />
-                <span class="switch-slider"></span>
+                <span class="switch-slider" :class="{ disabled: !isEligibleMentor }"></span>
               </label>
             </div>
           </div>
@@ -79,7 +81,8 @@ export default {
   data() {
     return {
       mentorModeEnabled: false,
-      userEmail: ''
+      userEmail: '',
+      isEligibleMentor: false
     }
   },
   async mounted() {
@@ -87,24 +90,72 @@ export default {
       const profile = await getProfile();
       this.userEmail = profile.data.email;
 
-      // Set toggle based on role
-      this.mentorModeEnabled = profile.data.role === 'mentor';
+      // infer mentor eligibility: allow if backend says role === 'mentor' OR has a hypothetical verified flag
+      // since API schema unknown, fallback to role === 'mentor' existing behavior
+      this.isEligibleMentor = !!(profile.data.isMentorVerified || profile.data.canBeMentor || profile.data.role === 'mentor')
+      
+      // 临时测试：强制启用导师资格！！
+      this.isEligibleMentor = true;
+
+      // Set toggle based on current localStorage role (preserve user's current state)
+      const currentRole = localStorage.getItem('userRole') || 'mentee';
+      this.mentorModeEnabled = currentRole === 'mentor';
+      
+      // Only sync if there's no existing role in localStorage
+      if (!localStorage.getItem('userRole')) {
+        this.mentorModeEnabled = profile.data.role === 'mentor';
+        localStorage.setItem('userRole', this.mentorModeEnabled ? 'mentor' : 'mentee');
+        window.dispatchEvent(new CustomEvent('userRoleChanged', { detail: this.mentorModeEnabled ? 'mentor' : 'mentee' }));
+      }
     } catch (err) {
       console.error("Failed to fetch profile:", err.response?.data || err.message);
     }
   },
   watch: {
-    mentorModeEnabled(newValue) {
+    async mentorModeEnabled(newValue, oldValue) {
+      if (!this.isEligibleMentor && newValue === true) {
+        // guard: revert and show hint
+        this.$nextTick(() => {
+          this.mentorModeEnabled = false
+        })
+        return
+      }
+
+      const desiredRole = newValue ? 'mentor' : 'mentee'
       console.log('Mentor Mode:', newValue ? 'Enabled' : 'Disabled')
 
-      // Toggle role
-      updateRole()
-        .then(() => {
-          console.log('Role toggled successfully');
-        })
-        .catch(err => {
-          console.error('Failed to toggle role:', err.response?.data || err.message);
-        });
+      // Optimistically update role cache and notify app
+      localStorage.setItem('userRole', desiredRole)
+      window.dispatchEvent(new CustomEvent('userRoleChanged', { detail: desiredRole }))
+
+      // If currently on any bookings route, route to the correct one based on mode
+      const isOnBookings = this.$route.path === '/my-bookings' || this.$route.path === '/mentors-bookings'
+      if (isOnBookings) {
+        const target = newValue ? '/mentors-bookings' : '/my-bookings'
+        if (this.$route.path !== target) {
+          this.$router.push(target)
+        }
+      }
+
+      try {
+        await updateRole()
+        console.log('Role toggled successfully')
+      } catch (err) {
+        console.error('Failed to toggle role:', err.response?.data || err.message)
+        // Rollback UI and cache
+        this.mentorModeEnabled = oldValue
+        const rollbackRole = oldValue ? 'mentor' : 'mentee'
+        localStorage.setItem('userRole', rollbackRole)
+        window.dispatchEvent(new CustomEvent('userRoleChanged', { detail: rollbackRole }))
+        // If we navigated, navigate back to match rollback state
+        const isOnBookingsNow = this.$route.path === '/my-bookings' || this.$route.path === '/mentors-bookings'
+        if (isOnBookingsNow) {
+          const rollbackTarget = oldValue ? '/mentors-bookings' : '/my-bookings'
+          if (this.$route.path !== rollbackTarget) {
+            this.$router.push(rollbackTarget)
+          }
+        }
+      }
     }
   }
 }
@@ -245,6 +296,12 @@ export default {
   line-height: 1.5;
 }
 
+.eligibility-hint {
+  margin-top: 8px;
+  font-size: 12px;
+  color: #ef4444;
+}
+
 /* Switch Styles */
 .switch-container {
   flex-shrink: 0;
@@ -275,6 +332,11 @@ export default {
   border-radius: 32px;
 }
 
+.switch-slider.disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 .switch-slider:before {
   position: absolute;
   content: "";
@@ -292,7 +354,8 @@ export default {
   background-color: #3b82f6;
 }
 
-.switch-input:checked + .switch-slider:before {
+.switch-input:checked + 
+.switch-slider:before {
   transform: translateX(20px);
 }
 

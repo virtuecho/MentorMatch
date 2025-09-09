@@ -52,6 +52,10 @@
           v-for="mentor in filteredMentors" 
           :key="mentor.id"
           class="mentor-card"
+          @click="goToMentorProfile(mentor)"
+          role="button"
+          tabindex="0"
+          @keydown.enter.prevent="goToMentorProfile(mentor)"
         >
           <div class="mentor-avatar">
             <img :src="mentor.avatar" :alt="mentor.name" />
@@ -73,7 +77,7 @@
 
             
           </div>
-          <button class="book-btn">Book Session</button>
+          <button class="book-btn" @click.stop="goToMentorProfile(mentor)">Book Session</button>
         </div>
       </div>
     </div>
@@ -228,6 +232,9 @@ export default {
     },
     setSearchQuery(query) {
       this.searchQuery = query
+    },
+    goToMentorProfile(mentor) {
+      this.$router.push(`/mentor-profile/${mentor.id}`)
     }
   }
 }
