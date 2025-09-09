@@ -71,18 +71,40 @@
 </template>
 
 <script>
+import { getProfile } from '@/services/auth';
+import { updateRole } from '@/services/role';
+
 export default {
   name: 'SettingsContent',
   data() {
     return {
-      mentorModeEnabled: true,
-      userEmail: 'johndoe@mail.email'
+      mentorModeEnabled: false,
+      userEmail: ''
+    }
+  },
+  async mounted() {
+    try {
+      const profile = await getProfile();
+      this.userEmail = profile.data.email;
+
+      // Set toggle based on role
+      this.mentorModeEnabled = profile.data.role === 'mentor';
+    } catch (err) {
+      console.error("Failed to fetch profile:", err.response?.data || err.message);
     }
   },
   watch: {
     mentorModeEnabled(newValue) {
       console.log('Mentor Mode:', newValue ? 'Enabled' : 'Disabled')
-      // Here you can add API call to update the setting
+
+      // Toggle role
+      updateRole()
+        .then(() => {
+          console.log('Role toggled successfully');
+        })
+        .catch(err => {
+          console.error('Failed to toggle role:', err.response?.data || err.message);
+        });
     }
   }
 }

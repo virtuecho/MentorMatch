@@ -118,13 +118,17 @@ export default {
       // Handle sign up logic here
       try {
         const res = await register(
+          this.formData.name || undefined,
           this.formData.email,
           this.formData.password,
-          this.formData.name || undefined,
           undefined  // Role will be set to 'mentee' by backend default
         );
         console.log(res.data);
         alert('Sign up successful!');
+
+        // Navigate to log in
+        const redirect = this.$route.query.redirect || { name: 'login' };
+        this.$router.replace(redirect);
       } catch (err) {
         console.error(err);
         alert(err.response?.data?.message || 'Registration failed');
