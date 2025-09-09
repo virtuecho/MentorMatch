@@ -76,6 +76,8 @@ export default {
         localStorage.setItem('authToken', res.data.token);
 
         // Navigate to the next page
+        const redirect = this.$route.query.redirect || { name: 'dashboard' };
+        this.$router.replace(redirect);
         // Not sure how or where to implement this so leave it to the frontend
       } catch (err) {
         console.error("Login failed:", err.response?.data || err.message);
