@@ -38,6 +38,7 @@
               <p class="mentor-mode-description">
                 Enable this to appear in search results for mentees
               </p>
+              <p v-if="!isEligibleMentor" class="eligibility-hint">Your account is not verified as a mentor yet. Please complete mentor verification to enable this.</p>
             </div>
             
             <div class="switch-container">
@@ -46,8 +47,10 @@
                   type="checkbox" 
                   v-model="mentorModeEnabled"
                   class="switch-input"
+                  :disabled="!isEligibleMentor"
+                  @change="onToggleMentorMode"
                 />
-                <span class="switch-slider"></span>
+                <span class="switch-slider" :class="{ disabled: !isEligibleMentor }"></span>
               </label>
             </div>
           </div>
@@ -71,21 +74,98 @@
 </template>
 
 <script>
+import { getProfile } from '@/services/auth';
+import { updateRole } from '@/services/role';
+
 export default {
   name: 'SettingsContent',
   data() {
     return {
-      mentorModeEnabled: true,
-      userEmail: 'johndoe@mail.email'
+      mentorModeEnabled: false,   // UI state (v-model)
+      userEmail: '',
+      isEligibleMentor: false,
+      isInitializing: true,       // true while we load initial state
+      serverRole: null,           // authoritative role from backend ('mentor'|'mentee')
+      isToggling: false           // prevents concurrent toggle calls
+    };
+  },
+
+  async mounted() {
+    try {
+      const profile = await getProfile();
+      const role = profile.data.role; // 'mentor' or 'mentee'
+      this.userEmail = profile.data.email || '';
+      this.isEligibleMentor = profile.data.isMentorApproved === true;
+      this.serverRole = role;
+      this.mentorModeEnabled = role === 'mentor';
+      localStorage.setItem('userRole', role);
+    } catch (err) {
+      console.error('Failed to fetch profile:', err.response?.data || err.message);
+      // keep isInitializing false so UI is usable even if load failed
+    } finally {
+      this.isInitializing = false;
     }
   },
-  watch: {
-    mentorModeEnabled(newValue) {
-      console.log('Mentor Mode:', newValue ? 'Enabled' : 'Disabled')
-      // Here you can add API call to update the setting
+
+  methods: {
+    // Call this from the toggle's change event in template
+    async onToggleMentorMode() {
+      // Protect against races or initial programmatic sets
+      if (this.isInitializing || this.isToggling) return;
+
+      // The UI already flipped because of v-model; that's "desired"
+      const desiredMentor = !!this.mentorModeEnabled;
+      const desiredRole = desiredMentor ? 'mentor' : 'mentee';
+
+      // Guard: not eligible
+      if (desiredMentor && !this.isEligibleMentor) {
+        this.$nextTick(() => { this.mentorModeEnabled = false; });
+        return;
+      }
+
+      // If the server already has the desired role, do nothing
+      if (this.serverRole === desiredRole) {
+        return;
+      }
+
+      this.isToggling = true;
+      try {
+        // Preferred: send explicit desired role if API supports it
+        // Fallback: call updateRole() without args (legacy toggle)
+        let res;
+        try {
+          res = await updateRole({ role: desiredRole });
+        } catch (err) {
+          // fallback for APIs that toggle server-side and accept no payload
+          res = await updateRole();
+        }
+
+        // use server response if available, otherwise fall back to our desiredRole
+        const updatedRole = (res && res.data && res.data.role) ? res.data.role : desiredRole;
+
+        // keep serverRole authoritative and reflect it in UI
+        this.serverRole = updatedRole;
+        this.mentorModeEnabled = updatedRole === 'mentor';
+        localStorage.setItem('userRole', updatedRole);
+
+        // redirect if needed (same logic you already had)
+        const isOnBookings = ['/my-bookings', '/mentors-bookings'].includes(this.$route.path);
+        const targetRoute = updatedRole === 'mentor' ? '/mentors-bookings' : '/my-bookings';
+        if (isOnBookings && this.$route.path !== targetRoute) {
+          this.$router.push(targetRoute);
+        }
+
+        console.log(`Role updated to ${updatedRole}`);
+      } catch (err) {
+        console.error('Failed to toggle role:', err.response?.data || err.message);
+        // revert UI to whatever the serverRole says (safe fallback)
+        this.mentorModeEnabled = this.serverRole === 'mentor';
+      } finally {
+        this.isToggling = false;
+      }
     }
   }
-}
+};
 </script>
 
 <style scoped>
@@ -223,6 +303,12 @@ export default {
   line-height: 1.5;
 }
 
+.eligibility-hint {
+  margin-top: 8px;
+  font-size: 12px;
+  color: #ef4444;
+}
+
 /* Switch Styles */
 .switch-container {
   flex-shrink: 0;
@@ -253,6 +339,11 @@ export default {
   border-radius: 32px;
 }
 
+.switch-slider.disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 .switch-slider:before {
   position: absolute;
   content: "";
@@ -270,7 +361,8 @@ export default {
   background-color: #3b82f6;
 }
 
-.switch-input:checked + .switch-slider:before {
+.switch-input:checked + 
+.switch-slider:before {
   transform: translateX(20px);
 }
 

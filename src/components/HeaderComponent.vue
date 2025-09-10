@@ -3,7 +3,7 @@
     <div class="header-container">
       <!-- Logo Section -->
       <div class="logo-section">
-        <div class="logo-icon">
+        <div class="logo-icon" @click="$router.push(logoRoute)" role="button" tabindex="0" @keydown.enter.prevent="$router.push(logoRoute)">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
             <g filter="url(#filter0_d_138_39)">
               <path fill-rule="evenodd" clip-rule="evenodd" d="M12 15.3338C10.5341 15.3338 9.10103 14.8991 7.88212 14.0847C6.66323 13.2703 5.71321 12.1127 5.15221 10.7583C4.59121 9.4039 4.44443 7.91358 4.73042 6.47581C5.01642 5.038 5.72234 3.7173 6.75894 2.68072C7.79552 1.64412 9.11622 0.938196 10.554 0.652201C11.9918 0.366206 13.4821 0.512991 14.8365 1.07399C16.1909 1.63499 17.3485 2.58501 18.1629 3.80393C18.9774 5.0228 19.4121 6.45586 19.4121 7.92181H12V15.3338Z" fill="#0D141C"/>
@@ -24,7 +24,7 @@
           </svg>
         </div>
         <div class="logo-text">
-          <router-link to="/" class="logo-link">
+          <router-link :to="logoRoute" class="logo-link">
             <h1>MentorMatch</h1>
           </router-link>
         </div>
@@ -56,12 +56,13 @@
             class="tab-button" 
             :class="{ active: $route.path === '/dashboard' }"
             @click="$emit('tab-change', 'sessions')"
+            v-if="!isMentorMode"
           >
             My Sessions
           </button>
           <button 
             class="tab-button" 
-            :class="{ active: $route.path === '/my-bookings' }"
+            :class="{ active: $route.path === '/my-bookings' || $route.path === '/mentors-bookings' }"
             @click="goToMyBookings"
           >
             My Bookings
@@ -130,7 +131,8 @@ export default {
   data() {
     return {
       searchQuery: '',
-      showDropdown: false
+      showDropdown: false,
+      role: localStorage.getItem('userRole') || 'mentee'
     }
   },
   computed: {
@@ -138,7 +140,16 @@ export default {
       return this.$route.path === '/dashboard'
     },
     showControlButtons() {
-      return this.$route.path === '/dashboard' || this.$route.path === '/settings' || this.$route.path === '/profile' || this.$route.path === '/my-bookings'
+      return this.$route.path === '/dashboard' || this.$route.path === '/settings' || this.$route.path === '/profile' || this.$route.path === '/my-bookings' || this.$route.path === '/mentors-bookings' || this.$route.path.startsWith('/mentor-profile')
+    },
+    logoRoute() {
+      // 根据角色决定点击 Logo 去向：Mentor -> mentors-bookings；Mentee -> my-bookings；未登录 -> 首页
+      const token = localStorage.getItem('authToken')
+      if (!token) return '/'
+      return this.role === 'mentor' ? '/mentors-bookings' : '/my-bookings'
+    },
+    isMentorMode() {
+      return this.role === 'mentor'
     }
   },
   methods: {
@@ -146,20 +157,37 @@ export default {
       this.$router.push('/settings')
     },
     goToMyBookings() {
-      this.$router.push('/my-bookings')
+      if (this.isMentorMode) {
+        if (this.$route.path !== '/mentors-bookings') {
+          this.$router.push('/mentors-bookings')
+        }
+      } else {
+        if (this.$route.path !== '/my-bookings') {
+          this.$router.push('/my-bookings')
+        }
+      }
     },
     goToProfile() {
       this.showDropdown = false
       this.$router.push('/profile')
     },
     logout() {
-      logout().then(() => {
-        this.$router.push('/login');
-      }).catch(error => {
-        console.error("Logout failed:", error);
-        this.$router.push('/login');
-      });
+      this.showDropdown = false
+      localStorage.removeItem('authToken')
+      localStorage.removeItem('userRole')
+      this.$router.push('/login')
+    },
+    onUserRoleChanged(e) {
+      if (e && e.detail) {
+        this.role = e.detail
+      }
     }
+  },
+  mounted() {
+    window.addEventListener('userRoleChanged', this.onUserRoleChanged)
+  },
+  beforeUnmount() {
+    window.removeEventListener('userRoleChanged', this.onUserRoleChanged)
   },
   emits: ['search', 'tab-change']
 }
