@@ -114,6 +114,8 @@
 </template>
 
 <script>
+import { logout } from '@/services/auth';
+
 export default {
   name: 'HeaderComponent',
   props: {

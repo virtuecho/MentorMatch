@@ -1,8 +1,9 @@
 
 import axios from "axios";
 
+const BASE_URL = process.env.VUE_APP_API_BASE_URL
 const API = axios.create({
-    baseURL: "https://networking-companion-backend.onrender.com", // should hide the api in an .env
+    baseURL: BASE_URL,
     headers: {
         "Content-Type": "application/json"
     }
