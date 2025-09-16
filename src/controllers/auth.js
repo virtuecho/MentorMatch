@@ -71,6 +71,33 @@ exports.getProfile = async (req, res) => {
   }
 };
 
+exports.updateProfile = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { fullName, bio, location, profileImageUrl, linkedinUrl, websiteUrl } = req.body;
+
+    const updatedProfile = await prisma.userProfile.update({
+      where: { userId },
+      data: {
+        fullName,
+        bio,
+        location,
+        profileImageUrl,
+        linkedinUrl,
+        websiteUrl
+      }
+    });
+
+    res.json({ message: 'Profile updated', profile: updatedProfile });
+  } catch (err) {
+    if (err.code === 'P2025') {
+      return res.status(404).json({ error: 'Profile not found' });
+    }
+    console.error('Update profile error:', err);
+    res.status(500).json({ error: 'Failed to update profile' });
+  }
+};
+
 // Get public mentor profile accessible by anyone
 exports.getMentorPublicProfile = async (req, res) => {
   try {
