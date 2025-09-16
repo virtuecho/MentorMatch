@@ -81,74 +81,67 @@ export default {
   name: 'SettingsContent',
   data() {
     return {
-      mentorModeEnabled: false,   // UI state (v-model)
+      mentorModeEnabled: false,
       userEmail: '',
       isEligibleMentor: false,
-      isInitializing: true,       // true while we load initial state
       serverRole: null,           // authoritative role from backend ('mentor'|'mentee')
       isToggling: false           // prevents concurrent toggle calls
     };
   },
+  created() {
+    const query = this.$route.query;
 
-  async mounted() {
-    try {
-      const profile = await getProfile();
-      const role = profile.data.role; // 'mentor' or 'mentee'
-      this.userEmail = profile.data.email || '';
-      this.isEligibleMentor = profile.data.isMentorApproved === true;
-      this.serverRole = role;
-      this.mentorModeEnabled = role === 'mentor';
-      localStorage.setItem('userRole', role);
-    } catch (err) {
-      console.error('Failed to fetch profile:', err.response?.data || err.message);
-      // keep isInitializing false so UI is usable even if load failed
-    } finally {
-      this.isInitializing = false;
-    }
+    const role = localStorage.getItem('userRole');
+    this.userEmail = query.email;
+    this.isEligibleMentor = query.isMentorApproved === 'true';
+    this.serverRole = role;
+    this.mentorModeEnabled = role === 'mentor'
   },
 
   methods: {
-    // Call this from the toggle's change event in template
-    async onToggleMentorMode() {
-      // Protect against races or initial programmatic sets
-      if (this.isInitializing || this.isToggling) return;
+    async fetchProfileFallback() {
+      try {
+        const profile = await getProfile();
+        const role = profile.data.role;
 
-      // The UI already flipped because of v-model; that's "desired"
+        this.userEmail = profile.data.email;
+        this.isEligibleMentor = profile.data.isMentorApproved === 'true';
+        this.serverRole = role;
+        this.mentorModeEnabled = role === 'mentor';
+        localStorage.setItem('userRole', role);
+      } catch (err) {
+        console.error('Failed to fetch profile on refresh:', err.response?.data || err.message);
+      }
+    },
+
+    async onToggleMentorMode() {
+      if (this.isToggling) { return; }
+
       const desiredMentor = !!this.mentorModeEnabled;
       const desiredRole = desiredMentor ? 'mentor' : 'mentee';
 
-      // Guard: not eligible
       if (desiredMentor && !this.isEligibleMentor) {
         this.$nextTick(() => { this.mentorModeEnabled = false; });
         return;
       }
 
-      // If the server already has the desired role, do nothing
-      if (this.serverRole === desiredRole) {
-        return;
-      }
+      if (this.serverRole === desiredRole) return;
 
       this.isToggling = true;
       try {
-        // Preferred: send explicit desired role if API supports it
-        // Fallback: call updateRole() without args (legacy toggle)
         let res;
         try {
           res = await updateRole({ role: desiredRole });
-        } catch (err) {
-          // fallback for APIs that toggle server-side and accept no payload
-          res = await updateRole();
+        } catch {
+          res = await updateRole(); // fallback
         }
 
-        // use server response if available, otherwise fall back to our desiredRole
-        const updatedRole = (res && res.data && res.data.role) ? res.data.role : desiredRole;
+        const updatedRole = res?.data?.role || desiredRole;
 
-        // keep serverRole authoritative and reflect it in UI
         this.serverRole = updatedRole;
         this.mentorModeEnabled = updatedRole === 'mentor';
         localStorage.setItem('userRole', updatedRole);
 
-        // redirect if needed (same logic you already had)
         const isOnBookings = ['/my-bookings', '/mentors-bookings'].includes(this.$route.path);
         const targetRoute = updatedRole === 'mentor' ? '/mentors-bookings' : '/my-bookings';
         if (isOnBookings && this.$route.path !== targetRoute) {
@@ -158,7 +151,6 @@ export default {
         console.log(`Role updated to ${updatedRole}`);
       } catch (err) {
         console.error('Failed to toggle role:', err.response?.data || err.message);
-        // revert UI to whatever the serverRole says (safe fallback)
         this.mentorModeEnabled = this.serverRole === 'mentor';
       } finally {
         this.isToggling = false;

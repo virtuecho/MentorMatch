@@ -114,6 +114,8 @@
 </template>
 
 <script>
+import { getProfile } from '@/services/auth';
+
 export default {
   name: 'HeaderComponent',
   props: {
@@ -151,8 +153,16 @@ export default {
     }
   },
   methods: {
-    goToSettings() {
-      this.$router.push('/settings')
+    async goToSettings() {
+      const profile = await getProfile();
+      this.$router.push({
+        path: '/settings',
+        query: {
+          role: profile.data.role,
+          email: profile.data.email,
+          isMentorApproved: profile.data.isMentorApproved
+        }
+      });
     },
     goToMyBookings() {
       if (this.isMentorMode) {
