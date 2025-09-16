@@ -35,8 +35,9 @@
           
           <div class="mentor-mode-row">
             <div class="mentor-mode-info">
-              <p class="mentor-mode-description">
-                Enable this to appear in search results for mentees
+              <p class="mentor-mode-description whitespace-normal">
+                Enable to manage and publish your sessions as a mentor. <br>
+                Disable to view and book mentors as a mentee.
               </p>
               <p v-if="!isEligibleMentor" class="eligibility-hint">Your account is not verified as a mentor yet. Please complete mentor verification to enable this.</p>
               
