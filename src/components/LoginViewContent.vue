@@ -271,7 +271,7 @@ export default {
   text-decoration: underline;
 }
 
-/* 响应式设计 */
+/* Responsive Design */
 @media (max-width: 1024px) {
   .login-content {
     padding: 20px 80px;

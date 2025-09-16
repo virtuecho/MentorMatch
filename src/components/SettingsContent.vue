@@ -39,6 +39,16 @@
                 Enable this to appear in search results for mentees
               </p>
               <p v-if="!isEligibleMentor" class="eligibility-hint">Your account is not verified as a mentor yet. Please complete mentor verification to enable this.</p>
+              
+              <!-- Mentor Verification Hint -->
+              <div class="mentor-verification-hint">
+                <p class="verification-text">
+                  Not a mentor yet? 
+                  <a href="#" @click.prevent="goToMentorVerification" class="verification-link">
+                    Apply for verification
+                  </a>
+                </p>
+              </div>
             </div>
             
             <div class="switch-container">
@@ -163,6 +173,9 @@ export default {
       } finally {
         this.isToggling = false;
       }
+    },
+    goToMentorVerification() {
+      this.$router.push('/mentor-verification');
     }
   }
 };
@@ -307,6 +320,30 @@ export default {
   margin-top: 8px;
   font-size: 12px;
   color: #ef4444;
+}
+
+/* Mentor Verification Hint */
+.mentor-verification-hint {
+  margin-top: 16px;
+}
+
+.verification-text {
+  font-family: Inter, sans-serif;
+  font-size: 13px;
+  color: #6b7280;
+  margin: 0;
+}
+
+.verification-link {
+  color: #3b82f6;
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.2s ease;
+}
+
+.verification-link:hover {
+  color: #2563eb;
+  text-decoration: underline;
 }
 
 /* Switch Styles */
