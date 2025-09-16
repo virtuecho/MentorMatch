@@ -44,6 +44,43 @@
             {{ tag.name }}
           </button>
         </div>
+
+        <!-- Date and Time Picker -->
+        <div class="datetime-picker-section">
+          <h4 class="datetime-title">Select Date & Time</h4>
+          <div class="datetime-inputs">
+            <div class="date-input-wrapper">
+              <label for="date-picker">Date</label>
+              <input 
+                id="date-picker"
+                type="date" 
+                v-model="selectedDate" 
+                class="datetime-input"
+                :min="today"
+              />
+            </div>
+            <div class="time-input-wrapper">
+              <label for="time-picker">Time</label>
+              <select 
+                id="time-picker"
+                v-model="selectedTime" 
+                class="datetime-input time-select"
+              >
+                <option value="">Any time</option>
+                <option v-for="time in availableTimeSlots" :key="time.value" :value="time.value">
+                  {{ time.label }}
+                </option>
+              </select>
+            </div>
+          </div>
+          <button 
+            v-if="selectedDate || selectedTime" 
+            @click="clearDateTime" 
+            class="clear-datetime-btn"
+          >
+            Clear Selection
+          </button>
+        </div>
       </div>
 
       <!-- Mentor Cards Grid -->
@@ -94,6 +131,20 @@ export default {
       selectedCity: '',
       selectedMajor: '',
       selectedTags: [],
+      selectedDate: '',
+      selectedTime: '',
+      today: new Date().toISOString().split('T')[0],
+      availableTimeSlots: [
+        { value: '09:00', label: '9:00 AM' },
+        { value: '10:00', label: '10:00 AM' },
+        { value: '11:00', label: '11:00 AM' },
+        { value: '12:00', label: '12:00 PM' },
+        { value: '13:00', label: '1:00 PM' },
+        { value: '14:00', label: '2:00 PM' },
+        { value: '15:00', label: '3:00 PM' },
+        { value: '16:00', label: '4:00 PM' },
+        { value: '17:00', label: '5:00 PM' }
+      ],
       subjectTags: [
         { id: 'ai', name: 'AI' },
         { id: 'ml', name: 'Machine Learning' },
@@ -112,10 +163,13 @@ export default {
           company: 'Google DeepMind',
           avatar: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMjAiIGN5PSIyMCIgcj0iMjAiIGZpbGw9IiM0RjQ2RTUiLz4KPHRleHQgeD0iMjAiIHk9IjI2IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSJ3aGl0ZSIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjE0IiBmb250LXdlaWdodD0iYm9sZCI+U0M8L3RleHQ+Cjwvc3ZnPgo=',
           tags: ['AI', 'Machine Learning', 'Computer Vision'],
-
-
           city: 'sydney',
-          major: 'ai-ml'
+          major: 'ai-ml',
+          availableSlots: {
+            '2024-12-20': ['09:00', '10:00', '14:00', '15:00'],
+            '2024-12-21': ['11:00', '13:00', '16:00', '17:00'],
+            '2024-12-22': ['09:00', '12:00', '15:00', '16:00']
+          }
         },
         {
           id: 2,
@@ -124,10 +178,13 @@ export default {
           company: 'Stanford University',
           avatar: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMjAiIGN5PSIyMCIgcj0iMjAiIGZpbGw9IiMwNTk2NjkiLz4KPHRleHQgeD0iMjAiIHk9IjI2IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSJ3aGl0ZSIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjE0IiBmb250LXdlaWdodD0iYm9sZCI+TVI8L3RleHQ+Cjwvc3ZnPgo=',
           tags: ['Data Science', 'Machine Learning', 'Academic Writing'],
-
-
           city: 'melbourne',
-          major: 'data-science'
+          major: 'data-science',
+          availableSlots: {
+            '2024-12-20': ['13:00', '14:00', '16:00'],
+            '2024-12-21': ['09:00', '10:00', '15:00', '17:00'],
+            '2024-12-23': ['11:00', '12:00', '16:00', '17:00']
+          }
         },
         {
           id: 3,
@@ -136,10 +193,13 @@ export default {
           company: 'Tesla',
           avatar: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMjAiIGN5PSIyMCIgcj0iMjAiIGZpbGw9IiNEQzI2MjYiLz4KPHRleHQgeD0iMjAiIHk9IjI2IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSJ3aGl0ZSIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjE0IiBmb250LXdlaWdodD0iYm9sZCI+RVc8L3RleHQ+Cjwvc3ZnPgo=',
           tags: ['Computer Vision', 'AI', 'Thesis Guidance'],
-
-
           city: 'brisbane',
-          major: 'ai-ml'
+          major: 'ai-ml',
+          availableSlots: {
+            '2024-12-20': ['10:00', '11:00', '15:00', '16:00'],
+            '2024-12-22': ['09:00', '13:00', '14:00', '16:00'],
+            '2024-12-24': ['12:00', '15:00', '17:00']
+          }
         },
         {
           id: 4,
@@ -148,10 +208,13 @@ export default {
           company: 'Microsoft',
           avatar: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMjAiIGN5PSIyMCIgcj0iMjAiIGZpbGw9IiM3QzNBRUQiLz4KPHRleHQgeD0iMjAiIHk9IjI2IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSJ3aGl0ZSIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjE0IiBmb250LXdlaWdodD0iYm9sZCI+Skw8L3RleHQ+Cjwvc3ZnPgo=',
           tags: ['Computer Science', 'AI', 'Academic Writing'],
-
-
           city: 'perth',
-          major: 'computer-science'
+          major: 'computer-science',
+          availableSlots: {
+            '2024-12-21': ['14:00', '15:00', '16:00', '17:00'],
+            '2024-12-22': ['10:00', '11:00', '17:00'],
+            '2024-12-23': ['09:00', '13:00', '15:00', '16:00']
+          }
         },
         {
           id: 5,
@@ -160,10 +223,13 @@ export default {
           company: 'Pixar Animation Studios',
           avatar: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMjAiIGN5PSIyMCIgcj0iMjAiIGZpbGw9IiNFQTU4MEMiLz4KPHRleHQgeD0iMjAiIHk9IjI2IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSJ3aGl0ZSIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjE0IiBmb250LXdlaWdodD0iYm9sZCI+QUs8L3RleHQ+Cjwvc3ZnPgo=',
           tags: ['Art', 'Computer Vision', 'Thesis Guidance'],
-
-
           city: 'adelaide',
-          major: 'art'
+          major: 'art',
+          availableSlots: {
+            '2024-12-20': ['12:00', '13:00', '17:00'],
+            '2024-12-21': ['11:00', '12:00', '15:00', '16:00'],
+            '2024-12-23': ['14:00', '15:00', '16:00']
+          }
         },
         {
           id: 6,
@@ -172,10 +238,13 @@ export default {
           company: 'OpenAI',
           avatar: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMjAiIGN5PSIyMCIgcj0iMjAiIGZpbGw9IiMwODkxQjIiLz4KPHRleHQgeD0iMjAiIHk9IjI2IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSJ3aGl0ZSIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjE0IiBmb250LXdlaWdodD0iYm9sZCI+Uko8L3RleHQ+Cjwvc3ZnPgo=',
           tags: ['Machine Learning', 'AI', 'Data Science'],
-
-
           city: 'sydney',
-          major: 'ai-ml'
+          major: 'ai-ml',
+          availableSlots: {
+            '2024-12-20': ['09:00', '11:00', '16:00', '17:00'],
+            '2024-12-21': ['10:00', '14:00', '17:00'],
+            '2024-12-22': ['12:00', '15:00', '16:00', '17:00']
+          }
         }
       ]
     }
@@ -215,6 +284,32 @@ export default {
         )
       }
       
+      // Filter by selected date and time
+      if (this.selectedDate || this.selectedTime) {
+        filtered = filtered.filter(mentor => {
+          // If only date is selected, check if mentor has any slots on that date
+          if (this.selectedDate && !this.selectedTime) {
+            return mentor.availableSlots && mentor.availableSlots[this.selectedDate]
+          }
+          
+          // If only time is selected, check if mentor has that time slot on any date
+          if (!this.selectedDate && this.selectedTime) {
+            return mentor.availableSlots && Object.values(mentor.availableSlots).some(slots => 
+              slots.includes(this.selectedTime)
+            )
+          }
+          
+          // If both date and time are selected, check for exact match
+          if (this.selectedDate && this.selectedTime) {
+            return mentor.availableSlots && 
+                   mentor.availableSlots[this.selectedDate] && 
+                   mentor.availableSlots[this.selectedDate].includes(this.selectedTime)
+          }
+          
+          return true
+        })
+      }
+      
       return filtered
     }
   },
@@ -235,6 +330,10 @@ export default {
     },
     goToMentorProfile(mentor) {
       this.$router.push(`/mentor-profile/${mentor.id}`)
+    },
+    clearDateTime() {
+      this.selectedDate = ''
+      this.selectedTime = ''
     }
   }
 }
@@ -313,11 +412,99 @@ export default {
   transform: translateY(-2px);
 }
 
+/* Date Time Picker */
+.datetime-picker-section {
+  margin-bottom: 24px;
+  padding: 20px;
+  background: #f8fafc;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+}
+
+.datetime-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 16px;
+}
+
+.datetime-inputs {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.date-input-wrapper,
+.time-input-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.date-input-wrapper label,
+.time-input-wrapper label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #374151;
+}
+
+.datetime-input {
+  width: 100%;
+  padding: 12px 16px;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  background: #ffffff;
+  font-size: 14px;
+  color: #374151;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.datetime-input:hover {
+  border-color: #9ca3af;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.datetime-input:focus {
+  outline: none;
+  border-color: #1f2937;
+  box-shadow: 0 0 0 3px rgba(31, 41, 55, 0.1);
+}
+
+.time-select {
+  appearance: none;
+  background-image: url('data:image/svg+xml;charset=US-ASCII,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 4 5"><path fill="%23666" d="M2 0L0 2h4zm0 5L0 3h4z"/></svg>');
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 12px;
+  padding-right: 40px;
+}
+
+.clear-datetime-btn {
+  margin-top: 12px;
+  padding: 8px 16px;
+  background: #ef4444;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  align-self: flex-start;
+}
+
+.clear-datetime-btn:hover {
+  background: #dc2626;
+  transform: translateY(-1px);
+}
+
 /* Subject Tags */
 .subject-tags {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+  margin-bottom: 32px;
 }
 
 .subject-tag {

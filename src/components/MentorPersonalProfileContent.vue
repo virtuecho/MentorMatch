@@ -34,8 +34,45 @@
 
           <!-- Action Buttons -->
           <div class="action-buttons">
-            <button class="book-session-btn">
+            <button class="book-session-btn" @click="showCalendar">
               Book a Session
+            </button>
+          </div>
+
+          <!-- Calendar Section -->
+          <div v-if="isCalendarVisible" class="calendar-section">
+            <h3 class="calendar-title">Select Date & Time</h3>
+            <div class="calendar-inputs">
+              <div class="calendar-input-group">
+                <label for="session-date">Date</label>
+                <input 
+                  id="session-date"
+                  type="date" 
+                  v-model="selectedDate" 
+                  class="calendar-input"
+                  :min="today"
+                />
+              </div>
+              <div class="calendar-input-group">
+                <label for="session-time">Time</label>
+                <select 
+                  id="session-time"
+                  v-model="selectedTime" 
+                  class="calendar-input time-select"
+                >
+                  <option value="">Select time</option>
+                  <option v-for="time in availableTimeSlots" :key="time.value" :value="time.value">
+                    {{ time.label }}
+                  </option>
+                </select>
+              </div>
+            </div>
+            <button 
+              v-if="selectedDate && selectedTime" 
+              @click="bookSelectedTime" 
+              class="confirm-booking-btn"
+            >
+              Confirm Booking
             </button>
           </div>
         </div>
@@ -112,7 +149,22 @@ export default {
         degree: '',
         university: '',
         graduationYear: ''
-      }
+      },
+      selectedDate: '',
+      selectedTime: '',
+      today: new Date().toISOString().split('T')[0],
+      isCalendarVisible: false,
+      availableTimeSlots: [
+        { value: '09:00', label: '9:00 AM' },
+        { value: '10:00', label: '10:00 AM' },
+        { value: '11:00', label: '11:00 AM' },
+        { value: '12:00', label: '12:00 PM' },
+        { value: '13:00', label: '1:00 PM' },
+        { value: '14:00', label: '2:00 PM' },
+        { value: '15:00', label: '3:00 PM' },
+        { value: '16:00', label: '4:00 PM' },
+        { value: '17:00', label: '5:00 PM' }
+      ]
     }
   },
   async mounted() {
@@ -145,6 +197,19 @@ export default {
     },
     goBack() {
       this.$router.go(-1);
+    },
+    showCalendar() {
+      this.isCalendarVisible = true;
+    },
+    bookSelectedTime() {
+      if (this.selectedDate && this.selectedTime) {
+        // TODO: Implement actual booking logic
+        alert(`Booking confirmed for ${this.selectedDate} at ${this.selectedTime}`);
+        // Reset selections after booking
+        this.selectedDate = '';
+        this.selectedTime = '';
+        this.isCalendarVisible = false;
+      }
     }
   }
 }
@@ -284,7 +349,94 @@ export default {
   background: #0056b3;
 }
 
+/* Calendar Section */
+.calendar-section {
+  margin-top: 32px;
+  padding: 24px;
+  background: #f8fafc;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+}
 
+.calendar-title {
+  font-family: Inter, sans-serif;
+  font-weight: 600;
+  font-size: 18px;
+  color: #1f2937;
+  margin: 0 0 20px 0;
+}
+
+.calendar-inputs {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.calendar-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.calendar-input-group label {
+  font-family: Inter, sans-serif;
+  font-weight: 500;
+  font-size: 14px;
+  color: #374151;
+}
+
+.calendar-input {
+  width: 100%;
+  padding: 12px 16px;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  background: #ffffff;
+  font-family: Inter, sans-serif;
+  font-size: 14px;
+  color: #374151;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.calendar-input:hover {
+  border-color: #9ca3af;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.calendar-input:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+}
+
+.time-select {
+  appearance: none;
+  background-image: url('data:image/svg+xml;charset=US-ASCII,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 4 5"><path fill="%23666" d="M2 0L0 2h4zm0 5L0 3h4z"/></svg>');
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 12px;
+  padding-right: 40px;
+}
+
+.confirm-booking-btn {
+  margin-top: 16px;
+  padding: 12px 24px;
+  background: #10b981;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-family: Inter, sans-serif;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  align-self: flex-start;
+}
+
+.confirm-booking-btn:hover {
+  background: #059669;
+  transform: translateY(-1px);
+}
 
 .mentor-profile-right {
   display: flex;
