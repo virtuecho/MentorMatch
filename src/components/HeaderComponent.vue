@@ -58,7 +58,7 @@
             @click="$emit('tab-change', 'sessions')"
             v-if="!isMentorMode"
           >
-            My Sessions
+            Browse Mentors
           </button>
           <button 
             class="tab-button" 
