@@ -58,7 +58,7 @@
             @click="$emit('tab-change', 'sessions')"
             v-if="!isMentorMode"
           >
-            My Sessions
+            Browse Mentors
           </button>
           <button 
             class="tab-button" 
@@ -114,7 +114,7 @@
 </template>
 
 <script>
-import { getProfile } from '@/services/auth';
+import { logout } from '@/services/auth';
 
 export default {
   name: 'HeaderComponent',
@@ -143,7 +143,7 @@ export default {
       return this.$route.path === '/dashboard' || this.$route.path === '/settings' || this.$route.path === '/profile' || this.$route.path === '/my-bookings' || this.$route.path === '/mentors-bookings' || this.$route.path.startsWith('/mentor-profile')
     },
     logoRoute() {
-      // 根据角色决定点击 Logo 去向：Mentor -> mentors-bookings；Mentee -> my-bookings；未登录 -> 首页
+      // Determine logo click destination based on role: Mentor -> mentors-bookings; Mentee -> my-bookings; Not logged in -> homepage
       const token = localStorage.getItem('authToken')
       if (!token) return '/'
       return this.role === 'mentor' ? '/mentors-bookings' : '/my-bookings'

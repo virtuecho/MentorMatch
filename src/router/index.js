@@ -7,6 +7,7 @@ import SettingsView from '../views/SettingsView.vue'
 import ProfileView from '../views/ProfileView.vue'
 import MyBookingsView from '../views/MyBookingsView.vue'
 import MentorsBookingsView from '../views/MentorsBookingsView.vue'
+import MentorVerificationView from '../views/MentorVerificationView.vue'
 
 const MentorPersonalProfileView = () => import('../views/MentorPersonalProfileView.vue')
 
@@ -57,6 +58,11 @@ const router = createRouter({
       path: '/mentor-profile/:id',
       name: 'mentor-personal-profile',
       component: MentorPersonalProfileView
+    },
+    {
+      path: '/mentor-verification',
+      name: 'mentor-verification',
+      component: MentorVerificationView
     }
   ]
 })
@@ -86,8 +92,8 @@ router.beforeEach((to, from, next) => {
   }
 
   // Allowed pages per role
-  const menteeAllowed = new Set(['/dashboard', '/my-bookings', '/settings', '/profile'])
-  const mentorAllowed = new Set(['/mentors-bookings', '/settings', '/profile'])
+  const menteeAllowed = new Set(['/dashboard', '/my-bookings', '/settings', '/profile', '/mentor-verification'])
+  const mentorAllowed = new Set(['/mentors-bookings', '/settings', '/profile', '/mentor-verification'])
 
   if (role === 'mentee') {
     // mentor personal profile page is also allowed for mentee

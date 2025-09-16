@@ -13,6 +13,13 @@
       </div>
     </div>
 
+    <!-- Create Meeting Modal -->
+    <CreateMeetingModal 
+      v-if="showCreateModal" 
+      @close="closeCreateModal" 
+      @meeting-created="handleMeetingCreated"
+    />
+
     <!-- Filter Tabs -->
     <div class="filter-tabs">
       <button 
@@ -87,12 +94,18 @@
 </template>
 
 <script>
+import CreateMeetingModal from './CreateMeetingModal.vue'
+
 export default {
   name: 'MentorsBookingsContent',
+  components: {
+    CreateMeetingModal
+  },
   data() {
     return {
       activeFilter: 'all',
       showCancelModal: false,
+      showCreateModal: false,
       bookingToCancel: null,
       filterTabs: [
         { id: 'all', label: 'All' },
@@ -134,8 +147,22 @@ export default {
       this.activeFilter = filterId
     },
     createNewMeeting() {
-      // 预留创建会议逻辑（打开弹窗或跳转到创建页）
-      this.$emit('create-meeting')
+      this.showCreateModal = true
+    },
+    closeCreateModal() {
+      this.showCreateModal = false
+    },
+    handleMeetingCreated(meetingData) {
+      // Add the new meeting to bookings list
+      const newBooking = {
+        id: this.bookings.length + 1,
+        status: 'Pending',
+        time: `${meetingData.date}, ${meetingData.time} • ${meetingData.location}`,
+        mentee: 'New Meeting',
+        menteeAvatar: '/default-avatar.jpg'
+      }
+      this.bookings.unshift(newBooking)
+      this.closeCreateModal()
     },
     showCancelConfirmation(booking) {
       this.bookingToCancel = booking
