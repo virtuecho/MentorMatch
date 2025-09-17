@@ -114,7 +114,7 @@
 </template>
 
 <script>
-import { logout, getProfile } from '@/services/auth';
+import { logout, getProfile } from '@/services/auth';-
 
 export default {
   name: 'HeaderComponent',
