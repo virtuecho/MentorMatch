@@ -25,14 +25,23 @@ model User {
 }
 
 model UserProfile {
-  userId          Int     @id
-  fullName        String
-  bio             String?
-  location        String?
-  profileImageUrl String?
-  linkedinUrl     String?
-  websiteUrl      String?
-  user            User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId            Int     @id
+  fullName          String
+  bio               String?
+  location          String?
+  profileImageUrl   String?
+  linkedinUrl       String?
+  websiteUrl        String?
+  phone             String?
+  socialMedia       String?
+
+  // Education
+  educations        Education[]
+
+  //Experience
+  experience        Experience[]
+
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model MentorRequest {
@@ -46,29 +55,38 @@ model MentorRequest {
 }
 
 model MentorSkill {
-  id        Int    @id @default(autoincrement())
-  mentorId  Int
-  skillName String
-  mentor    User   @relation(fields: [mentorId], references: [id], onDelete: Cascade)
+  id          Int    @id @default(autoincrement())
+  mentorId    Int
+  skillName   String
+  skillLevel  SkillLevel?   // Look up SkillLevel model for options
+  mentor      User   @relation(fields: [mentorId], references: [id], onDelete: Cascade)
 }
 
 model AvailabilitySlot {
-  id        Int       @id @default(autoincrement())
-  mentorId  Int
-  startTime DateTime
-  endTime   DateTime
-  isBooked  Boolean   @default(false)
-  mentor    User      @relation(fields: [mentorId], references: [id], onDelete: Cascade)
-  booking   Booking[]
+  id              Int           @id @default(autoincrement())
+  mentorId        Int
+  title           String?
+  startTime       DateTime
+  durationMins    Int
+  locationType    LocationType  @default(in_person)
+  city            String
+  address         String
+  maxParticipants Int           @default(2)
+  note            String?
+  isBooked        Boolean       @default(false)
+  mentor          User          @relation(fields: [mentorId], references: [id], onDelete: Cascade)
+  booking         Booking[]
 }
 
 model Booking {
   id                 Int               @id @default(autoincrement())
   topic              String
-  availabilitySlotId Int?
+  description        String?
+  availabilitySlotId Int
   createdAt          DateTime          @default(now())
-  locationDetails    String?
-  locationType       LocationType
+  updatedAt          DateTime          @default(now())
+  numParticipants    Int               @default(1)
+  note               String?
   menteeId           Int
   mentorId           Int
   status             BookingStatus     @default(pending)
@@ -77,10 +95,38 @@ model Booking {
   mentor             User              @relation("MentorBookings", fields: [mentorId], references: [id], onDelete: Cascade)
 }
 
+model Education {
+  id          Int    @id @default(autoincrement())
+  userId      Int
+  university  String
+  degree      String
+  major       String
+  startYear   Int
+  duration    Int    // -1 if on-going
+  logoUrl     String?
+  description String?
+  user        User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Experience {
+  id          Int    @id @default(autoincrement())
+  userId      Int
+  company     String
+  position    String
+  industry    String?
+  expertise   String?     // Stored as JSON string
+  startYear   Int
+  duration    Int    // -1 if on-going
+  description String?
+  user        User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
 model Notification {
   id        Int      @id @default(autoincrement())
   userId    Int
+  title     String   // "No title" if no title provided
   message   String
+  type      NotificationType    // Look up NotificationType for options
   isRead    Boolean  @default(false)
   createdAt DateTime @default(now())
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -89,6 +135,7 @@ model Notification {
 enum Role {
   mentee
   mentor
+  admin
 }
 
 enum RequestStatus {
@@ -99,12 +146,27 @@ enum RequestStatus {
 
 enum BookingStatus {
   pending
-  confirmed
+  accepted
   rejected
   cancelled
+  completed
 }
 
 enum LocationType {
   online
   in_person
+}
+
+enum SkillLevel {
+  beginner
+  intermediate
+  advanced
+  expert
+}
+
+enum NotificationType {
+  booking
+  verification
+  system
+  reminder
 }
