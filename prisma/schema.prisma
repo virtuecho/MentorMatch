@@ -121,7 +121,6 @@ model Experience {
   status      Status        @default(on_going)
   description String?
   userProfile UserProfile   @relation(fields: [userId], references: [userId], onDelete: Cascade)
-
 }
 
 model Notification {
