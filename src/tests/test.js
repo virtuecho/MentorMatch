@@ -6,6 +6,7 @@ const prisma = new PrismaClient();
 
 // Clean DB before running tests
 beforeAll(async () => {
+  await prisma.mentorSkill.deleteMany();
   await prisma.user.deleteMany();
 });
 
@@ -15,6 +16,7 @@ afterAll(async () => {
 
 describe("Auth Endpoints", () => {
   let token;
+  let userId;
 
   it("should register a new user", async () => {
     const res = await request(app)
@@ -27,6 +29,18 @@ describe("Auth Endpoints", () => {
     expect(res.statusCode).toBe(201);
     expect(res.body).toHaveProperty("user");
     expect(res.body.user.email).toBe("test@example.com");
+    userId = res.body.user.id;
+  });
+
+  it("should fail to register with duplicate email", async () => {
+    const res = await request(app)
+      .post("/auth/register")
+      .send({
+        fullName: "Test User",
+        email: "test@example.com",
+        password: "password123",
+      });
+    expect(res.statusCode).toBe(409);
   });
 
   it("should login with valid credentials", async () => {
@@ -60,9 +74,43 @@ describe("Auth Endpoints", () => {
   });
 
   it("should block profile without token", async () => {
-    const res = await request(app)
-      .get("/auth/profile");
+    const res = await request(app).get("/auth/profile");
     expect(res.statusCode).toBe(401);
   });
-});
 
+  it("should update user profile", async () => {
+    const res = await request(app)
+      .put("/auth/profile")
+      .set("Authorization", `Bearer ${token}`)
+      .send({
+        fullName: "Updated Name",
+        bio: "Test bio",
+        location: "Test Location",
+        profileImageUrl: "https://example.com/image.jpg",
+      });
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body.profile.fullName).toBe("Updated Name");
+    expect(res.body.profile.bio).toBe("Test bio");
+  });
+
+  it("should get public mentor profile", async () => {
+    await prisma.user.update({
+      where: { id: userId },
+      data: { role: "mentor", isMentorApproved: true },
+    });
+
+    await prisma.mentorSkill.create({
+      data: {
+        mentorId: userId,
+        skillName: "JavaScript",
+      },
+    });
+
+    const res = await request(app).get(`/auth/mentor/${userId}`);
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body.fullName).toBe("Updated Name");
+    expect(res.body.skills).toContain("JavaScript");
+  });
+});
