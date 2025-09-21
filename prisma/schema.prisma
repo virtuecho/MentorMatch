@@ -55,11 +55,11 @@ model MentorRequest {
 }
 
 model MentorSkill {
-  id          Int    @id @default(autoincrement())
+  id          Int           @id @default(autoincrement())
   mentorId    Int
   skillName   String
   skillLevel  SkillLevel?   // Look up SkillLevel model for options
-  mentor      User   @relation(fields: [mentorId], references: [id], onDelete: Cascade)
+  mentor      User          @relation(fields: [mentorId], references: [id], onDelete: Cascade)
 }
 
 model AvailabilitySlot {
@@ -96,29 +96,32 @@ model Booking {
 }
 
 model Education {
-  id          Int    @id @default(autoincrement())
+  id          Int           @id @default(autoincrement())
   userId      Int
   university  String
   degree      String
   major       String
   startYear   Int
-  duration    Int    // -1 if on-going
+  endYear     Int?
+  status      Status        @default(on_going)
   logoUrl     String?
   description String?
-  user        User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userProfile UserProfile   @relation(fields: [userId], references: [userId], onDelete: Cascade)
 }
 
 model Experience {
-  id          Int    @id @default(autoincrement())
+  id          Int           @id @default(autoincrement())
   userId      Int
   company     String
   position    String
   industry    String?
-  expertise   String?     // Stored as JSON string
+  expertise   String?       // Stored as JSON string
   startYear   Int
-  duration    Int    // -1 if on-going
+  endYear     Int?
+  status      Status        @default(on_going)
   description String?
-  user        User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userProfile UserProfile   @relation(fields: [userId], references: [userId], onDelete: Cascade)
+
 }
 
 model Notification {
@@ -136,6 +139,11 @@ enum Role {
   mentee
   mentor
   admin
+}
+
+enum Status {
+  completed
+  on_going
 }
 
 enum RequestStatus {
