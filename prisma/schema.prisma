@@ -96,29 +96,29 @@ model Booking {
 }
 
 model Education {
-  id          Int    @id @default(autoincrement())
-  userId      Int
-  university  String
-  degree      String
-  major       String
-  startYear   Int
-  duration    Int    // -1 if on-going
-  logoUrl     String?
-  description String?
-  user        User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id            Int    @id @default(autoincrement())
+  userProfileId Int
+  university    String
+  degree        String
+  major         String
+  startYear     Int
+  duration      Int    // -1 if on-going
+  logoUrl       String?
+  description   String?
+  userProfile   UserProfile  @relation(fields: [userProfileId], references: [userId], onDelete: Cascade)
 }
 
 model Experience {
-  id          Int    @id @default(autoincrement())
-  userId      Int
-  company     String
-  position    String
-  industry    String?
-  expertise   String?     // Stored as JSON string
-  startYear   Int
-  duration    Int    // -1 if on-going
-  description String?
-  user        User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id            Int    @id @default(autoincrement())
+  userProfileId Int
+  company       String
+  position      String
+  industry      String?
+  expertise     String?     // Stored as JSON string
+  startYear     Int
+  duration      Int    // -1 if on-going
+  description   String?
+  userProfile   UserProfile  @relation(fields: [userProfileId], references: [userId], onDelete: Cascade)
 }
 
 model Notification {
