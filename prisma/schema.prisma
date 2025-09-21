@@ -55,11 +55,11 @@ model MentorRequest {
 }
 
 model MentorSkill {
-  id          Int    @id @default(autoincrement())
+  id          Int           @id @default(autoincrement())
   mentorId    Int
   skillName   String
   skillLevel  SkillLevel?   // Look up SkillLevel model for options
-  mentor      User   @relation(fields: [mentorId], references: [id], onDelete: Cascade)
+  mentor      User          @relation(fields: [mentorId], references: [id], onDelete: Cascade)
 }
 
 model AvailabilitySlot {
@@ -96,29 +96,31 @@ model Booking {
 }
 
 model Education {
-  id            Int    @id @default(autoincrement())
-  userProfileId Int
-  university    String
-  degree        String
-  major         String
-  startYear     Int
-  duration      Int    // -1 if on-going
-  logoUrl       String?
-  description   String?
-  userProfile   UserProfile  @relation(fields: [userProfileId], references: [userId], onDelete: Cascade)
+  id          Int           @id @default(autoincrement())
+  userId      Int
+  university  String
+  degree      String
+  major       String
+  startYear   Int
+  endYear     Int?
+  status      Status        @default(on_going)
+  logoUrl     String?
+  description String?
+  userProfile UserProfile   @relation(fields: [userId], references: [userId], onDelete: Cascade)
 }
 
 model Experience {
-  id            Int    @id @default(autoincrement())
-  userProfileId Int
-  company       String
-  position      String
-  industry      String?
-  expertise     String?     // Stored as JSON string
-  startYear     Int
-  duration      Int    // -1 if on-going
-  description   String?
-  userProfile   UserProfile  @relation(fields: [userProfileId], references: [userId], onDelete: Cascade)
+  id          Int           @id @default(autoincrement())
+  userId      Int
+  company     String
+  position    String
+  industry    String?
+  expertise   String?       // Stored as JSON string
+  startYear   Int
+  endYear     Int?
+  status      Status        @default(on_going)
+  description String?
+  userProfile UserProfile   @relation(fields: [userId], references: [userId], onDelete: Cascade)
 }
 
 model Notification {
@@ -136,6 +138,11 @@ enum Role {
   mentee
   mentor
   admin
+}
+
+enum Status {
+  completed
+  on_going
 }
 
 enum RequestStatus {

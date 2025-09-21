@@ -4,20 +4,45 @@ const prisma = new PrismaClient();
 // Mentor creates availble time slot
 exports.createAvailability = async (req, res) => {
   try {
-    const { startTime, endTime } = req.body;
+    const {
+      title,
+      startTime,
+      durationMins,
+      locationType = 'in_person', // default fallback
+      city,
+      address,
+      maxParticipants = 2,
+      note
+    } = req.body;
+
     const mentorId = req.user.id;
 
-    // Time validity
-    if (new Date(startTime) >= new Date(endTime)) {
-      return res.status(400).json({ error: 'End time must be after start time' });
+    // Basic validation
+    if (!startTime || !durationMins || !city || !address) {
+      return res.status(400).json({ error: 'Missing required fields' });
     }
 
-    // Create time slot
+    const parsedStart = new Date(startTime);
+    if (isNaN(parsedStart.getTime())) {
+      return res.status(400).json({ error: 'Invalid startTime format' });
+    }
+
+    if (durationMins <= 0) {
+      return res.status(400).json({ error: 'Duration must be a positive number' });
+    }
+
+    // Create slot
     const availabilitySlot = await prisma.availabilitySlot.create({
       data: {
         mentorId,
-        startTime: new Date(startTime),
-        endTime: new Date(endTime),
+        title,
+        startTime: parsedStart,
+        durationMins,
+        locationType,
+        city,
+        address,
+        maxParticipants,
+        note,
         isBooked: false
       }
     });
@@ -32,7 +57,8 @@ exports.createAvailability = async (req, res) => {
   }
 };
 
-// Get availble time slot
+
+// Get available time slot
 exports.getMyAvailability = async (req, res) => {
   try {
     const mentorId = req.user.id;
