@@ -70,3 +70,82 @@ exports.getProfile = async (req, res) => {
     res.status(500).json({ error: 'Could not fetch profile' });
   }
 };
+
+exports.updateProfile = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { fullName, bio, location, profileImageUrl, linkedinUrl, websiteUrl } = req.body;
+
+    const updatedProfile = await prisma.userProfile.update({
+      where: { userId },
+      data: {
+        fullName,
+        bio,
+        location,
+        profileImageUrl,
+        linkedinUrl,
+        websiteUrl
+      }
+    });
+
+    res.json({ message: 'Profile updated', profile: updatedProfile });
+  } catch (err) {
+    if (err.code === 'P2025') {
+      return res.status(404).json({ error: 'Profile not found' });
+    }
+    console.error('Update profile error:', err);
+    res.status(500).json({ error: 'Failed to update profile' });
+  }
+};
+
+// Get public mentor profile accessible by anyone
+exports.getMentorPublicProfile = async (req, res) => {
+  try {
+    const { mentorId } = req.params;
+    
+    const mentor = await prisma.user.findUnique({
+      where: { 
+        id: parseInt(mentorId),
+        isMentorApproved: true
+      },
+      include: {
+        profile: {
+          select: {
+            fullName: true,
+            profileImageUrl: true,
+            bio: true,
+            location: true,
+            linkedinUrl: true,
+            websiteUrl: true
+          }
+        },
+        mentorSkills: {
+          select: {
+            skillName: true
+          }
+        }
+      }
+    });
+
+    if (!mentor) {
+      return res.status(404).json({ error: 'Mentor not found' });
+    }
+
+    // Formatted
+    const publicProfile = {
+      id: mentor.id,
+      fullName: mentor.profile?.fullName,
+      profileImageUrl: mentor.profile?.profileImageUrl,
+      bio: mentor.profile?.bio,
+      location: mentor.profile?.location,
+      linkedinUrl: mentor.profile?.linkedinUrl,
+      websiteUrl: mentor.profile?.websiteUrl,
+      skills: mentor.mentorSkills.map(skill => skill.skillName)
+    };
+
+    res.json(publicProfile);
+  } catch (err) {
+    console.error('Get mentor profile error:', err);
+    res.status(500).json({ error: 'Failed to fetch mentor profile' });
+  }
+};
