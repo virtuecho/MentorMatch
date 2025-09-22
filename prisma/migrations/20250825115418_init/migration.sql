@@ -1,23 +1,14 @@
 -- CreateEnum
-CREATE TYPE "public"."Role" AS ENUM ('mentee', 'mentor', 'admin');
-
--- CreateEnum
-CREATE TYPE "public"."Status" AS ENUM ('completed', 'on_going');
+CREATE TYPE "public"."Role" AS ENUM ('mentee', 'mentor');
 
 -- CreateEnum
 CREATE TYPE "public"."RequestStatus" AS ENUM ('pending', 'approved', 'rejected');
 
 -- CreateEnum
-CREATE TYPE "public"."BookingStatus" AS ENUM ('pending', 'accepted', 'rejected', 'cancelled', 'completed');
+CREATE TYPE "public"."BookingStatus" AS ENUM ('pending', 'confirmed', 'rejected', 'cancelled');
 
 -- CreateEnum
 CREATE TYPE "public"."LocationType" AS ENUM ('online', 'in_person');
-
--- CreateEnum
-CREATE TYPE "public"."SkillLevel" AS ENUM ('beginner', 'intermediate', 'advanced', 'expert');
-
--- CreateEnum
-CREATE TYPE "public"."NotificationType" AS ENUM ('booking', 'verification', 'system', 'reminder');
 
 -- CreateTable
 CREATE TABLE "public"."User" (
@@ -41,8 +32,6 @@ CREATE TABLE "public"."UserProfile" (
     "profileImageUrl" TEXT,
     "linkedinUrl" TEXT,
     "websiteUrl" TEXT,
-    "phone" TEXT,
-    "socialMedia" TEXT,
 
     CONSTRAINT "UserProfile_pkey" PRIMARY KEY ("userId")
 );
@@ -64,7 +53,6 @@ CREATE TABLE "public"."MentorSkill" (
     "id" SERIAL NOT NULL,
     "mentorId" INTEGER NOT NULL,
     "skillName" TEXT NOT NULL,
-    "skillLevel" "public"."SkillLevel",
 
     CONSTRAINT "MentorSkill_pkey" PRIMARY KEY ("id")
 );
@@ -73,14 +61,8 @@ CREATE TABLE "public"."MentorSkill" (
 CREATE TABLE "public"."AvailabilitySlot" (
     "id" SERIAL NOT NULL,
     "mentorId" INTEGER NOT NULL,
-    "title" TEXT,
     "startTime" TIMESTAMP(3) NOT NULL,
-    "durationMins" INTEGER NOT NULL,
-    "locationType" "public"."LocationType" NOT NULL DEFAULT 'in_person',
-    "city" TEXT NOT NULL,
-    "address" TEXT NOT NULL,
-    "maxParticipants" INTEGER NOT NULL DEFAULT 2,
-    "note" TEXT,
+    "endTime" TIMESTAMP(3) NOT NULL,
     "isBooked" BOOLEAN NOT NULL DEFAULT false,
 
     CONSTRAINT "AvailabilitySlot_pkey" PRIMARY KEY ("id")
@@ -90,12 +72,10 @@ CREATE TABLE "public"."AvailabilitySlot" (
 CREATE TABLE "public"."Booking" (
     "id" SERIAL NOT NULL,
     "topic" TEXT NOT NULL,
-    "description" TEXT,
-    "availabilitySlotId" INTEGER NOT NULL,
+    "availabilitySlotId" INTEGER,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "numParticipants" INTEGER NOT NULL DEFAULT 1,
-    "note" TEXT,
+    "locationDetails" TEXT,
+    "locationType" "public"."LocationType" NOT NULL,
     "menteeId" INTEGER NOT NULL,
     "mentorId" INTEGER NOT NULL,
     "status" "public"."BookingStatus" NOT NULL DEFAULT 'pending',
@@ -104,44 +84,10 @@ CREATE TABLE "public"."Booking" (
 );
 
 -- CreateTable
-CREATE TABLE "public"."Education" (
-    "id" SERIAL NOT NULL,
-    "userId" INTEGER NOT NULL,
-    "university" TEXT NOT NULL,
-    "degree" TEXT NOT NULL,
-    "major" TEXT NOT NULL,
-    "startYear" INTEGER NOT NULL,
-    "endYear" INTEGER,
-    "status" "public"."Status" NOT NULL DEFAULT 'on_going',
-    "logoUrl" TEXT,
-    "description" TEXT,
-
-    CONSTRAINT "Education_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "public"."Experience" (
-    "id" SERIAL NOT NULL,
-    "userId" INTEGER NOT NULL,
-    "company" TEXT NOT NULL,
-    "position" TEXT NOT NULL,
-    "industry" TEXT,
-    "expertise" TEXT,
-    "startYear" INTEGER NOT NULL,
-    "endYear" INTEGER,
-    "status" "public"."Status" NOT NULL DEFAULT 'on_going',
-    "description" TEXT,
-
-    CONSTRAINT "Experience_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
 CREATE TABLE "public"."Notification" (
     "id" SERIAL NOT NULL,
     "userId" INTEGER NOT NULL,
-    "title" TEXT NOT NULL,
     "message" TEXT NOT NULL,
-    "type" "public"."NotificationType" NOT NULL,
     "isRead" BOOLEAN NOT NULL DEFAULT false,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
@@ -164,19 +110,13 @@ ALTER TABLE "public"."MentorSkill" ADD CONSTRAINT "MentorSkill_mentorId_fkey" FO
 ALTER TABLE "public"."AvailabilitySlot" ADD CONSTRAINT "AvailabilitySlot_mentorId_fkey" FOREIGN KEY ("mentorId") REFERENCES "public"."User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "public"."Booking" ADD CONSTRAINT "Booking_availabilitySlotId_fkey" FOREIGN KEY ("availabilitySlotId") REFERENCES "public"."AvailabilitySlot"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "public"."Booking" ADD CONSTRAINT "Booking_availabilitySlotId_fkey" FOREIGN KEY ("availabilitySlotId") REFERENCES "public"."AvailabilitySlot"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "public"."Booking" ADD CONSTRAINT "Booking_menteeId_fkey" FOREIGN KEY ("menteeId") REFERENCES "public"."User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "public"."Booking" ADD CONSTRAINT "Booking_mentorId_fkey" FOREIGN KEY ("mentorId") REFERENCES "public"."User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "public"."Education" ADD CONSTRAINT "Education_userId_fkey" FOREIGN KEY ("userId") REFERENCES "public"."UserProfile"("userId") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "public"."Experience" ADD CONSTRAINT "Experience_userId_fkey" FOREIGN KEY ("userId") REFERENCES "public"."UserProfile"("userId") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "public"."Notification" ADD CONSTRAINT "Notification_userId_fkey" FOREIGN KEY ("userId") REFERENCES "public"."User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
