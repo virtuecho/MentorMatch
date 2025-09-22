@@ -69,8 +69,8 @@ exports.respondToBooking = async (req, res) => {
       return res.status(400).json({ error: 'Invalid booking ID', bookingId });
     }
 
-    if (!['accepted', 'rejected'].includes(response)) {
-        return res.status(400).json({ error: 'Invalid response. Must be accepted or rejected.' });
+    if (!['confirmed', 'rejected'].includes(response)) {
+        return res.status(400).json({ error: 'Invalid response. Must be confirmed or rejected.' });
     }
 
     const booking = await prisma.booking.findUnique({ where: { id: bookingId } });
@@ -96,5 +96,85 @@ exports.respondToBooking = async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Failed to update booking status' });
+  }
+};
+
+// Get booking history for a user
+exports.getBookingHistory = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { role } = req.query; // 'mentor' or 'mentee'
+    
+    // Validate role
+    if (!role || (role !== 'mentor' && role !== 'mentee')) {
+      return res.status(400).json({ error: 'Invalid role parameter. Must be "mentor" or "mentee".' });
+    }
+    
+    // Determine which field to filter by based on role
+    const filterField = role === 'mentor' ? 'mentorId' : 'menteeId';
+    
+    // Get confirmed bookings that have ended
+    const bookings = await prisma.booking.findMany({
+      where: {
+        [filterField]: userId,
+        status: 'confirmed',
+        availabilitySlot: {
+          endTime: { lt: new Date() } // Only ended bookings
+        }
+      },
+      include: {
+        availabilitySlot: true,
+        mentor: {
+          include: { 
+            profile: {
+              select: {
+                fullName: true,
+                profileImageUrl: true
+              }
+            }
+          }
+        },
+        mentee: {
+          include: { 
+            profile: {
+              select: {
+                fullName: true,
+                profileImageUrl: true
+              }
+            }
+          }
+        }
+      },
+      orderBy: {
+        availabilitySlot: {
+          startTime: 'desc'
+        }
+      }
+    });
+    
+    // Formatted
+    const formattedBookings = bookings.map(booking => ({
+      id: booking.id,
+      topic: booking.topic,
+      startTime: booking.availabilitySlot.startTime,
+      endTime: booking.availabilitySlot.endTime,
+      locationType: booking.locationType,
+      locationDetails: booking.locationDetails,
+      mentor: {
+        id: booking.mentor.id,
+        fullName: booking.mentor.profile?.fullName,
+        profileImageUrl: booking.mentor.profile?.profileImageUrl
+      },
+      mentee: {
+        id: booking.mentee.id,
+        fullName: booking.mentee.profile?.fullName,
+        profileImageUrl: booking.mentee.profile?.profileImageUrl
+      }
+    }));
+    
+    res.json(formattedBookings);
+  } catch (err) {
+    console.error('Get booking history error:', err);
+    res.status(500).json({ error: 'Failed to fetch booking history' });
   }
 };
