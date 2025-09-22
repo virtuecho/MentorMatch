@@ -4,15 +4,34 @@ const prisma = new PrismaClient();
 // This function can be accessed by mentee to book a mentor
 exports.createBooking = async (req, res) => {
   try {
-    const { availabilitySlotId, topic } = req.body;
+    const { 
+      availabilitySlotId, 
+      topic,
+      description,
+      note,
+      numParticipants = 1,  
+    } = req.body;
     const userId = req.user.id;
 
+    // Basic validation
+    if (!availabilitySlotId) {
+      return res.status(400).json({ error: 'availabilitySlotId is required' });
+    }
+    if (typeof numParticipants !== 'number' || numParticipants < 1) {
+      return res.status(400).json({ error: 'numParticipants must be a number ≥ 1' });
+    }
+
+    // Fetch slot
     const slot = await prisma.availabilitySlot.findUnique({ 
       where: { id: availabilitySlotId } 
     });
-
     if (!slot || slot.isBooked) {
       return res.status(400).json({ error: 'Slot unavailable or already booked' });
+    }
+    if (numParticipants > slot.maxParticipants) {
+      return res.status(400).json({
+        error: `numParticipants cannot exceed maxParticipants (${slot.maxParticipants})`
+      });
     }
 
     const booking = await prisma.booking.create({
@@ -21,13 +40,11 @@ exports.createBooking = async (req, res) => {
         mentorId: slot.mentorId,
         availabilitySlotId,
         topic: topic || 'academic topic',
+        description,
+        note,
+        numParticipants,
         status: 'pending'
       }
-    });
-
-    await prisma.availabilitySlot.update({
-      where: { id: availabilitySlotId },
-      data: { isBooked: true }
     });
 
     res.status(201).json({ message: 'Booking request sent', booking });
@@ -44,8 +61,7 @@ exports.cancelBooking = async (req, res) => {
     const userId = req.user.id;
 
     const booking = await prisma.booking.findUnique({
-      where: { id: bookingId },
-      include: { availabilitySlot: true }
+      where: { id: bookingId }
     });
 
     if (!booking || booking.menteeId !== userId) {
@@ -55,11 +71,6 @@ exports.cancelBooking = async (req, res) => {
     const cancelled = await prisma.booking.update({
       where: { id: bookingId },
       data: { status: 'cancelled' }
-    });
-
-    await prisma.availabilitySlot.update({
-      where: { id: booking.availabilitySlot.id },
-      data: { isBooked: false }
     });
 
     res.json({ message: 'Booking cancelled', booking: cancelled });
@@ -102,6 +113,13 @@ exports.respondToBooking = async (req, res) => {
         where: { id: bookingId },
         data: { status: response }
     });
+
+    if (response === 'accepted') {
+      await prisma.availabilitySlot.update({
+        where: { id: booking.availabilitySlotId },
+        data: { isBooked: true }
+      });
+    }
 
     res.json({ message: `Booking ${response}`, booking: updatedBooking });
   } catch (err) {
