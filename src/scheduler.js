@@ -32,7 +32,7 @@ async function cleanupExpiredSlotsAndBookings() {
     // Clean up failed bookings and their slots
     const expiredBookings = await prisma.booking.findMany({
       where: {
-        status: { not: 'confirmed' }
+        status: { not: 'accepted' }
       },
       include: {
         availabilitySlot: {
