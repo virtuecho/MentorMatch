@@ -194,5 +194,46 @@ describe("Registration Input Validation", () => {
       });
     expect(res.statusCode).toBe(400);
   });
+});
 
+describe("Login Edge Cases", () => {
+  it("should reject login with invalid or empty email", async () => {
+    const res = await request(app)
+      .post("/auth/login")
+      .send({
+        email: "",
+        password: "password123"
+      });
+    expect(res.statusCode).toBe(400);
+  });
+
+  it("should reject login with empty password", async () => {
+    const res = await request(app)
+      .post("/auth/login")
+      .send({
+        email: "test@example.com",
+        password: ""
+      });
+    expect(res.statusCode).toBe(400);
+  });
+
+  it("should reject login with non-existent email", async () => {
+    const res = await request(app)
+      .post("/auth/login")
+      .send({
+        email: "nonexistent@example.com",
+        password: "password123"
+      });
+    expect(res.statusCode).toBe(401);
+  });
+
+  it("should reject login with SQL injection attempt", async () => {
+    const res = await request(app)
+      .post("/auth/login")
+      .send({
+        email: "sqlinjection@example.com",
+        password: "' OR '1'='1"
+      });
+    expect(res.statusCode).toBe(401);
+  });
 });
