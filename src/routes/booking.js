@@ -13,4 +13,7 @@ router.post('/cancel', authenticate, checkRole('mentee'), bookingController.canc
 // Mentor responds to booking
 router.patch('/:id/respond', authenticate, checkRole('mentor'), bookingController.respondToBooking);
 
+// Get booking history for a user
+router.get('/history', authenticate, bookingController.getBookingHistory);
+
 module.exports = router;

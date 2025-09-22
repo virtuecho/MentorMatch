@@ -7,8 +7,7 @@ exports.searchMentors = async (req, res) => {
     
     const mentors = await prisma.user.findMany({
       where: {
-        role: 'mentor',  // Find mentor only
-		isMentorApproved: true,
+        isMentorApproved: true, // Check this instead of role
         profile: {
           location: location ? { contains: location, mode: 'insensitive' } : undefined
         },
@@ -17,9 +16,17 @@ exports.searchMentors = async (req, res) => {
         } : undefined
       },
       include: {
-        profile: true,
-        mentorSkills: true,
-		availabilitySlots: true
+        profile: {
+          select: {
+            fullName: true,
+            profileImageUrl: true
+          }
+        },
+        mentorSkills: {
+          select: {
+            skillName: true
+          }
+        }
       },
       take: Number(maxResults)
     });
@@ -28,7 +35,15 @@ exports.searchMentors = async (req, res) => {
       return res.status(404).json({ message: 'No mentors found' });
     }
 
-    res.json(mentors);
+    // Formatted for frontend
+    const formattedMentors = mentors.map(mentor => ({
+      id: mentor.id,
+      fullName: mentor.profile?.fullName,
+      profileImageUrl: mentor.profile?.profileImageUrl,
+      skills: mentor.mentorSkills.map(skill => skill.skillName)
+    }));
+
+    res.json(formattedMentors);
   } catch (err) {
     console.error('Search error:', err);
     res.status(500).json({ error: 'Failed to search mentors' });
