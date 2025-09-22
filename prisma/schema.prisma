@@ -143,7 +143,6 @@ enum Role {
 enum Status {
   completed
   on_going
-  admin
 }
 
 enum RequestStatus {
