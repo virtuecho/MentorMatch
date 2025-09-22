@@ -69,8 +69,8 @@ exports.respondToBooking = async (req, res) => {
       return res.status(400).json({ error: 'Invalid booking ID', bookingId });
     }
 
-    if (!['accepted', 'rejected'].includes(response)) {
-        return res.status(400).json({ error: 'Invalid response. Must be accepted or rejected.' });
+    if (!['confirmed', 'rejected'].includes(response)) {
+        return res.status(400).json({ error: 'Invalid response. Must be confirmed or rejected.' });
     }
 
     const booking = await prisma.booking.findUnique({ where: { id: bookingId } });
