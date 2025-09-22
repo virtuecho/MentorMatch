@@ -8,8 +8,13 @@ const availabilityRoutes = require('./routes/availability');
 const bookingRoutes = require('./routes/booking');
 
 const errorHandler = require('./middleware/error');
+const cors = require('cors');
+const { corsOptions } = require('./config/cors');
 
 const app = express();
+
+// CORS
+app.use(cors(corsOptions));
 
 // Middleware
 app.use(bodyParser.json());
@@ -20,6 +25,11 @@ app.use('/role', roleRoutes)
 app.use('/mentor', mentorRoutes);
 app.use('/availability', availabilityRoutes);
 app.use('/booking', bookingRoutes);
+
+// Confirm backend API
+app.get('/', (req, res) => {
+  res.json({ status: 'ok', message: 'API is live' });
+});
 
 // Error handler
 app.use(errorHandler);
