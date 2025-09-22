@@ -4,25 +4,30 @@ const prisma = new PrismaClient();
 // This function can be accessed by mentee to book a mentor
 exports.createBooking = async (req, res) => {
   try {
-    const { availabilitySlotId, locationDetails } = req.body;
+    const { availabilitySlotId, topic } = req.body;
     const userId = req.user.id;
 
-    const slot = await prisma.availabilitySlot.findUnique({ where: { id: availabilitySlotId } });
+    const slot = await prisma.availabilitySlot.findUnique({ 
+      where: { id: availabilitySlotId } 
+    });
 
     if (!slot || slot.isBooked) {
-        return res.status(400).json({ error: 'Slot unavailable or already booked' });
+      return res.status(400).json({ error: 'Slot unavailable or already booked' });
     }
 
     const booking = await prisma.booking.create({
-        data: {
+      data: {
         menteeId: userId,
         mentorId: slot.mentorId,
         availabilitySlotId,
-        topic: 'academic topic',
-        locationType: 'in_person',
-        locationDetails: locationDetails || '',
+        topic: topic || 'academic topic',
         status: 'pending'
-        }
+      }
+    });
+
+    await prisma.availabilitySlot.update({
+      where: { id: availabilitySlotId },
+      data: { isBooked: true }
     });
 
     res.status(201).json({ message: 'Booking request sent', booking });
@@ -39,16 +44,22 @@ exports.cancelBooking = async (req, res) => {
     const userId = req.user.id;
 
     const booking = await prisma.booking.findUnique({
-        where: { id: bookingId }
+      where: { id: bookingId },
+      include: { availabilitySlot: true }
     });
 
     if (!booking || booking.menteeId !== userId) {
-        return res.status(403).json({ error: 'Unauthorized or booking not found' });
+      return res.status(403).json({ error: 'Unauthorized or booking not found' });
     }
 
     const cancelled = await prisma.booking.update({
-        where: { id: bookingId },
-        data: { status: 'cancelled' }
+      where: { id: bookingId },
+      data: { status: 'cancelled' }
+    });
+
+    await prisma.availabilitySlot.update({
+      where: { id: booking.availabilitySlot.id },
+      data: { isBooked: false }
     });
 
     res.json({ message: 'Booking cancelled', booking: cancelled });
@@ -117,10 +128,7 @@ exports.getBookingHistory = async (req, res) => {
     const bookings = await prisma.booking.findMany({
       where: {
         [filterField]: userId,
-        status: 'confirmed',
-        availabilitySlot: {
-          endTime: { lt: new Date() } // Only ended bookings
-        }
+        status: 'accepted'
       },
       include: {
         availabilitySlot: true,
@@ -152,25 +160,37 @@ exports.getBookingHistory = async (req, res) => {
       }
     });
     
+    const endedBookings = bookings.filter(booking => {
+      const endTime = new Date(booking.availabilitySlot.startTime);
+      endTime.setMinutes(endTime.getMinutes() + booking.availabilitySlot.durationMins);
+      return endTime < new Date();
+    });
+    
     // Formatted
-    const formattedBookings = bookings.map(booking => ({
-      id: booking.id,
-      topic: booking.topic,
-      startTime: booking.availabilitySlot.startTime,
-      endTime: booking.availabilitySlot.endTime,
-      locationType: booking.locationType,
-      locationDetails: booking.locationDetails,
-      mentor: {
-        id: booking.mentor.id,
-        fullName: booking.mentor.profile?.fullName,
-        profileImageUrl: booking.mentor.profile?.profileImageUrl
-      },
-      mentee: {
-        id: booking.mentee.id,
-        fullName: booking.mentee.profile?.fullName,
-        profileImageUrl: booking.mentee.profile?.profileImageUrl
-      }
-    }));
+    const formattedBookings = endedBookings.map(booking => {
+      const startTime = booking.availabilitySlot.startTime;
+      const endTime = new Date(startTime);
+      endTime.setMinutes(endTime.getMinutes() + booking.availabilitySlot.durationMins);
+      
+      return {
+        id: booking.id,
+        topic: booking.topic,
+        startTime,
+        endTime,
+        locationType: booking.availabilitySlot.locationType,
+        locationDetails: booking.availabilitySlot.address,
+        mentor: {
+          id: booking.mentor.id,
+          fullName: booking.mentor.profile?.fullName,
+          profileImageUrl: booking.mentor.profile?.profileImageUrl
+        },
+        mentee: {
+          id: booking.mentee.id,
+          fullName: booking.mentee.profile?.fullName,
+          profileImageUrl: booking.mentee.profile?.profileImageUrl
+        }
+      };
+    });
     
     res.json(formattedBookings);
   } catch (err) {
