@@ -42,23 +42,6 @@ model UserProfile {
   experience        Experience[]
 
   user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId            Int     @id
-  fullName          String
-  bio               String?
-  location          String?
-  profileImageUrl   String?
-  linkedinUrl       String?
-  websiteUrl        String?
-  phone             String?
-  socialMedia       String?
-
-  // Education
-  educations        Education[]
-
-  //Experience
-  experience        Experience[]
-
-  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model MentorRequest {
@@ -72,11 +55,6 @@ model MentorRequest {
 }
 
 model MentorSkill {
-  id          Int           @id @default(autoincrement())
-  mentorId    Int
-  skillName   String
-  skillLevel  SkillLevel?   // Look up SkillLevel model for options
-  mentor      User          @relation(fields: [mentorId], references: [id], onDelete: Cascade)
   id          Int           @id @default(autoincrement())
   mentorId    Int
   skillName   String
@@ -98,19 +76,6 @@ model AvailabilitySlot {
   isBooked        Boolean       @default(false)
   mentor          User          @relation(fields: [mentorId], references: [id], onDelete: Cascade)
   booking         Booking[]
-  id              Int           @id @default(autoincrement())
-  mentorId        Int
-  title           String?
-  startTime       DateTime
-  durationMins    Int
-  locationType    LocationType  @default(in_person)
-  city            String
-  address         String
-  maxParticipants Int           @default(2)
-  note            String?
-  isBooked        Boolean       @default(false)
-  mentor          User          @relation(fields: [mentorId], references: [id], onDelete: Cascade)
-  booking         Booking[]
 }
 
 model Booking {
@@ -118,12 +83,7 @@ model Booking {
   topic              String
   description        String?
   availabilitySlotId Int
-  description        String?
-  availabilitySlotId Int
   createdAt          DateTime          @default(now())
-  updatedAt          DateTime          @default(now())
-  numParticipants    Int               @default(1)
-  note               String?
   updatedAt          DateTime          @default(now())
   numParticipants    Int               @default(1)
   note               String?
@@ -161,45 +121,13 @@ model Experience {
   status      Status        @default(on_going)
   description String?
   userProfile UserProfile   @relation(fields: [userId], references: [userId], onDelete: Cascade)
-
-}
-
-model Education {
-  id          Int           @id @default(autoincrement())
-  userId      Int
-  university  String
-  degree      String
-  major       String
-  startYear   Int
-  endYear     Int?
-  status      Status        @default(on_going)
-  logoUrl     String?
-  description String?
-  userProfile UserProfile   @relation(fields: [userId], references: [userId], onDelete: Cascade)
-}
-
-model Experience {
-  id          Int           @id @default(autoincrement())
-  userId      Int
-  company     String
-  position    String
-  industry    String?
-  expertise   String?       // Stored as JSON string
-  startYear   Int
-  endYear     Int?
-  status      Status        @default(on_going)
-  description String?
-  userProfile UserProfile   @relation(fields: [userId], references: [userId], onDelete: Cascade)
-
 }
 
 model Notification {
   id        Int      @id @default(autoincrement())
   userId    Int
   title     String   // "No title" if no title provided
-  title     String   // "No title" if no title provided
   message   String
-  type      NotificationType    // Look up NotificationType for options
   type      NotificationType    // Look up NotificationType for options
   isRead    Boolean  @default(false)
   createdAt DateTime @default(now())
@@ -218,11 +146,6 @@ enum Status {
   admin
 }
 
-enum Status {
-  completed
-  on_going
-}
-
 enum RequestStatus {
   pending
   approved
@@ -232,10 +155,8 @@ enum RequestStatus {
 enum BookingStatus {
   pending
   accepted
-  accepted
   rejected
   cancelled
-  completed
   completed
 }
 
