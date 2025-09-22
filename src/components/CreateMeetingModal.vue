@@ -144,6 +144,8 @@
 </template>
 
 <script>
+import { createAvailability } from '@/services/availability';
+
 export default {
   name: 'CreateMeetingModal',
   data() {
@@ -168,13 +170,11 @@ export default {
       return today.toISOString().split('T')[0]
     },
     isFormValid() {
-      return this.formData.title &&
-             this.formData.date &&
+      return this.formData.date &&
              this.formData.time &&
              this.formData.duration &&
              this.formData.location &&
-             this.formData.address &&
-             this.formData.maxParticipants
+             this.formData.address
     }
   },
   methods: {
@@ -190,30 +190,28 @@ export default {
       this.isSubmitting = true
 
       try {
-        // TODO: Replace with actual API call
-        const meetingData = {
-          ...this.formData,
-          createdBy: 'current-mentor-id', // This should come from auth state
-          status: 'available',
-          participants: [],
-          createdAt: new Date().toISOString()
+        // Build ISO startTime from date + time
+        const startTime = new Date(
+          `${this.formData.date}T${this.formData.time}`
+        ).toISOString();
+
+        const payload = {
+          title: this.formData.title || 'No title',
+          startTime,
+          durationMins: Number(this.formData.duration),
+          city: this.formData.location,
+          address: this.formData.address,
+          maxParticipants: this.formData.maxParticipants || 1
+        };
+
+        if (this.formData.notes) {
+          payload.note = this.formData.notes;
         }
 
-        // Simulate API call
-        await new Promise(resolve => setTimeout(resolve, 1500))
+        const res = await createAvailability(payload);
 
-        // TODO: Implement actual API call
-        // const response = await fetch('/api/meetings', {
-        //   method: 'POST',
-        //   headers: {
-        //     'Content-Type': 'application/json',
-        //     'Authorization': `Bearer ${localStorage.getItem('authToken')}`
-        //   },
-        //   body: JSON.stringify(meetingData)
-        // })
-
-        alert('Meeting created successfully! Mentees can now book this session.')
-        this.$emit('meeting-created', meetingData)
+        alert('Slot created successfully!');
+        this.$emit('availability-created', res.data);
         this.closeModal()
 
       } catch (error) {
