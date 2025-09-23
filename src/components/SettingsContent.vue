@@ -42,7 +42,7 @@
               <p v-if="!isEligibleMentor" class="eligibility-hint">Your account is not verified as a mentor yet. Please complete mentor verification to enable this.</p>
               
               <!-- Mentor Verification Hint -->
-              <div class="mentor-verification-hint">
+              <div class="mentor-verification-hint" v-if="false">
                 <p class="verification-text">
                   Not a mentor yet? 
                   <a href="#" @click.prevent="goToMentorVerification" class="verification-link">
