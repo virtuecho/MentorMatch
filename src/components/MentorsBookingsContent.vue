@@ -34,11 +34,11 @@
 
     <!-- Bookings List -->
     <div class="bookings-list">
-      <div 
-        v-for="booking in filteredBookings" 
-        :key="booking.id"
-        class="booking-card"
-      >
+        <div 
+          v-for="booking in filteredBookings" 
+          :key="booking.id"
+          class="booking-card"
+        >
         <div class="booking-content">
           <div class="booking-info">
             <div class="status-badge" :class="booking.status.toLowerCase()">
@@ -50,7 +50,21 @@
             </div>
           </div>
           <div class="booking-actions" v-if="booking.status === 'Accepted' || booking.status === 'Pending'">
-            <button class="cancel-btn" @click="showCancelConfirmation(booking)">
+            <template v-if="booking.status === 'Pending'">
+              <button 
+                class="accept-btn"
+                @click="acceptBooking(booking)"
+              >
+                Accept
+              </button>
+              <button 
+                class="reject-btn"
+                @click="rejectBooking(booking)"
+              >
+                Reject
+              </button>
+            </template>
+            <button v-if="booking.status === 'Accepted'" class="cancel-btn" @click="showCancelConfirmation(booking)">
               <span>Cancel</span>
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
                 <path d="M12 4L4 12M4 4L12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -61,8 +75,8 @@
         <div class="mentor-avatar">
           <img :src="booking.menteeAvatar" :alt="booking.mentee" />
         </div>
-      </div>
-    </div>
+        </div>
+     </div>
 
     <!-- Empty State -->
     <div v-if="filteredBookings.length === 0" class="empty-state">
@@ -128,6 +142,34 @@ export default {
           time: 'Fri 23 Aug, 14:00 AEST • Parkville',
           mentee: 'Bob Lee',
           menteeAvatar: '/default-avatar.jpg'
+        },
+        {
+          id: 3,
+          status: 'Pending',
+          time: 'Mon 26 Aug, 09:00 AEST • Online',
+          mentee: 'Charlie Chen',
+          menteeAvatar: '/default-avatar.jpg'
+        },
+        {
+          id: 4,
+          status: 'Rejected',
+          time: 'Tue 27 Aug, 15:30 AEST • Carlton',
+          mentee: 'Diana Smith',
+          menteeAvatar: '/default-avatar.jpg'
+        },
+        {
+          id: 5,
+          status: 'Completed',
+          time: 'Wed 21 Aug, 11:00 AEST • Parkville',
+          mentee: 'Emma Johnson',
+          menteeAvatar: '/default-avatar.jpg'
+        },
+        {
+          id: 6,
+          status: 'Accepted',
+          time: 'Thu 29 Aug, 16:00 AEST • Online',
+          mentee: 'Frank Wilson',
+          menteeAvatar: '/default-avatar.jpg'
         }
       ]
     }
@@ -177,6 +219,18 @@ export default {
         this.bookingToCancel.status = 'Cancelled'
         this.closeCancelModal()
       }
+    },
+    acceptBooking(booking) {
+      // TODO: Implement accept booking functionality
+      console.log('Accepting booking:', booking)
+      // This would typically make an API call to accept the booking
+      booking.status = 'Accepted'
+    },
+    rejectBooking(booking) {
+      // TODO: Implement reject booking functionality
+      console.log('Rejecting booking:', booking)
+      // This would typically make an API call to reject the booking
+      booking.status = 'Rejected'
     }
   }
 }
@@ -400,29 +454,61 @@ export default {
   align-items: center;
 }
 
-.cancel-btn {
+.accept-btn, .reject-btn, .cancel-btn {
   display: flex;
   align-items: center;
   gap: 8px;
   padding: 8px 16px;
-  background-color: #ffffff;
   border: 1px solid #e0e0e0;
   border-radius: 8px;
-  color: #1a1a1a;
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
+  margin-left: 8px;
+}
+
+.accept-btn {
+  background-color: #22c55e;
+  color: white;
+  border-color: #22c55e;
+}
+
+.accept-btn:hover {
+  background-color: #16a34a;
+  border-color: #16a34a;
+}
+
+.reject-btn {
+  background-color: #ef4444;
+  color: white;
+  border-color: #ef4444;
+}
+
+.reject-btn:hover {
+  background-color: #dc2626;
+  border-color: #dc2626;
+}
+
+.cancel-btn {
+  background-color: #ffffff;
+  color: #1a1a1a;
 }
 
 .cancel-btn:hover {
   background-color: #f5f5f5;
   border-color: #d0d0d0;
+  color: #ef4444;
 }
 
 .cancel-btn svg {
   width: 16px;
   height: 16px;
+}
+
+.booking-actions {
+  display: flex;
+  align-items: center;
 }
 
 .mentor-avatar img {
@@ -431,6 +517,8 @@ export default {
   border-radius: 50%;
   object-fit: cover;
 }
+
+
 
 /* Empty state */
 .empty-state {

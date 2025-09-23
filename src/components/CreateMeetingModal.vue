@@ -14,18 +14,7 @@
       <!-- Modal Body -->
       <div class="modal-body">
         <form @submit.prevent="submitMeeting" class="meeting-form">
-          <!-- Meeting Title -->
-          <div class="form-group">
-            <label for="meetingTitle" class="form-label">Meeting Title *</label>
-            <input
-              id="meetingTitle"
-              v-model="formData.title"
-              type="text"
-              class="form-input"
-              placeholder="Enter meeting title"
-              required
-            />
-          </div>
+
 
           <!-- Date and Time -->
           <div class="form-row">
@@ -42,13 +31,23 @@
             </div>
             <div class="form-group">
               <label for="meetingTime" class="form-label">Time *</label>
-              <input
+              <select
                 id="meetingTime"
                 v-model="formData.time"
-                type="time"
-                class="form-input"
+                class="form-select"
                 required
-              />
+              >
+                <option value="">Select time</option>
+                <option value="09:00">9:00 AM</option>
+                <option value="10:00">10:00 AM</option>
+                <option value="11:00">11:00 AM</option>
+                <option value="12:00">12:00 PM</option>
+                <option value="13:00">1:00 PM</option>
+                <option value="14:00">2:00 PM</option>
+                <option value="15:00">3:00 PM</option>
+                <option value="16:00">4:00 PM</option>
+                <option value="17:00">5:00 PM</option>
+              </select>
             </div>
           </div>
 
@@ -64,17 +63,22 @@
             </select>
           </div>
 
-          <!-- Location -->
+          <!-- City -->
           <div class="form-group">
-            <label for="location" class="form-label">Location *</label>
-            <input
-              id="location"
-              v-model="formData.location"
-              type="text"
-              class="form-input"
-              placeholder="Enter meeting location (e.g., Coffee Shop, Library, Office)"
+            <label for="city" class="form-label">City *</label>
+            <select
+              id="city"
+              v-model="formData.city"
+              class="form-select"
               required
-            />
+            >
+              <option value="">Select city</option>
+              <option value="sydney">Sydney</option>
+              <option value="melbourne">Melbourne</option>
+              <option value="brisbane">Brisbane</option>
+              <option value="perth">Perth</option>
+              <option value="adelaide">Adelaide</option>
+            </select>
           </div>
 
           <!-- Address -->
@@ -90,17 +94,7 @@
             ></textarea>
           </div>
 
-          <!-- Meeting Description -->
-          <div class="form-group">
-            <label for="description" class="form-label">Meeting Description</label>
-            <textarea
-              id="description"
-              v-model="formData.description"
-              class="form-textarea"
-              placeholder="Describe what will be covered in this meeting (optional)"
-              rows="4"
-            ></textarea>
-          </div>
+
 
           <!-- Max Participants -->
           <div class="form-group">
@@ -152,13 +146,11 @@ export default {
     return {
       isSubmitting: false,
       formData: {
-        title: '',
         date: '',
         time: '',
         duration: '',
-        location: '',
+        city: '',
         address: '',
-        description: '',
         maxParticipants: '',
         notes: ''
       }
@@ -173,7 +165,7 @@ export default {
       return this.formData.date &&
              this.formData.time &&
              this.formData.duration &&
-             this.formData.location &&
+             this.formData.city &&
              this.formData.address
     }
   },
@@ -196,10 +188,9 @@ export default {
         ).toISOString();
 
         const payload = {
-          title: this.formData.title || 'No title',
           startTime,
           durationMins: Number(this.formData.duration),
-          city: this.formData.location,
+          city: this.formData.city,
           address: this.formData.address,
           maxParticipants: this.formData.maxParticipants || 1
         };
