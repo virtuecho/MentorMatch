@@ -329,7 +329,23 @@ export default {
       this.searchQuery = query
     },
     goToMentorProfile(mentor) {
-      this.$router.push(`/mentor-profile/${mentor.id}`)
+      // Build query parameters from current filters
+      const query = {};
+      if (this.selectedDate) {
+        query.date = this.selectedDate;
+      }
+      if (this.selectedTime) {
+        query.time = this.selectedTime;
+      }
+      if (this.selectedCity) {
+        query.city = this.selectedCity;
+      }
+      
+      // Navigate to mentor profile with filter parameters
+      this.$router.push({
+        path: `/mentor-profile/${mentor.id}`,
+        query: query
+      });
     },
     clearDateTime() {
       this.selectedDate = ''

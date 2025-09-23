@@ -32,48 +32,94 @@
             </div>
           </div>
 
-          <!-- Action Buttons -->
-          <div class="action-buttons">
-            <button class="book-session-btn" @click="showCalendar">
+          <!-- Book a Session Button -->
+          <div class="book-session-container">
+            <button class="book-session-btn" @click="showAvailableSessions">
               Book a Session
             </button>
           </div>
 
-          <!-- Calendar Section -->
-          <div v-if="isCalendarVisible" class="calendar-section">
-            <h3 class="calendar-title">Select Date & Time</h3>
-            <div class="calendar-inputs">
-              <div class="calendar-input-group">
-                <label for="session-date">Date</label>
-                <input 
-                  id="session-date"
-                  type="date" 
-                  v-model="selectedDate" 
-                  class="calendar-input"
-                  :min="today"
-                />
-              </div>
-              <div class="calendar-input-group">
-                <label for="session-time">Time</label>
-                <select 
-                  id="session-time"
-                  v-model="selectedTime" 
-                  class="calendar-input time-select"
-                >
-                  <option value="">Select time</option>
-                  <option v-for="time in availableTimeSlots" :key="time.value" :value="time.value">
-                    {{ time.label }}
-                  </option>
-                </select>
+          <!-- Available Sessions Section -->
+        <div v-if="showSessions" class="available-sessions-section">
+          <h3 class="sessions-title">Available Sessions</h3>
+          
+          <!-- Filter Info -->
+          <div v-if="hasActiveFilters" class="filter-info">
+            <div class="filter-info-header">
+              <span class="filter-icon">🔍</span>
+              <span class="filter-text">Filtered results based on your dashboard selection:</span>
+            </div>
+            <div class="active-filters">
+              <span v-if="filterDate" class="filter-tag">
+                📅 {{ formatFilterDate(filterDate) }}
+              </span>
+              <span v-if="filterTime" class="filter-tag">
+                🕐 {{ formatFilterTime(filterTime) }}
+              </span>
+              <span v-if="filterCity" class="filter-tag">
+                📍 {{ formatFilterCity(filterCity) }}
+              </span>
+            </div>
+          </div>
+            
+            <!-- Loading State -->
+            <div v-if="isLoadingSessions" class="loading-state">
+              <p>Loading available sessions...</p>
+            </div>
+            
+            <!-- No Sessions Available -->
+            <div v-else-if="availableSessions.length === 0" class="no-sessions-state">
+              <p>No available sessions at the moment.</p>
+              <p class="no-sessions-subtitle">Please check back later or contact the mentor directly.</p>
+            </div>
+            
+            <!-- Available Sessions List -->
+            <div v-else class="sessions-list">
+              <div 
+                v-for="session in availableSessions" 
+                :key="session.id"
+                class="session-card"
+                :class="{ 'session-booked': session.isBooked }"
+              >
+                <div class="session-info">
+                  <div class="session-date">
+                    {{ formatDate(session.startTime) }}
+                  </div>
+                  <div class="session-time">
+                    {{ formatTime(session.startTime) }} - {{ formatEndTime(session.startTime, session.durationMins) }}
+                  </div>
+                  <div class="session-duration">
+                    {{ session.durationMins }} minutes
+                  </div>
+                  <div class="session-location">
+                    📍 {{ session.city }}
+                  </div>
+                  <div v-if="session.address" class="session-address">
+                    {{ session.address }}
+                  </div>
+                  <div class="session-participants">
+                    {{ session.currentParticipants || 0 }}/{{ session.maxParticipants }} participants
+                  </div>
+                </div>
+                
+                <div class="session-actions">
+                  <button 
+                    v-if="!session.isBooked && (session.currentParticipants || 0) < session.maxParticipants"
+                    @click="requestBooking(session)"
+                    class="request-booking-btn"
+                    :disabled="isRequestingBooking"
+                  >
+                    {{ isRequestingBooking ? 'Requesting...' : 'Request Booking' }}
+                  </button>
+                  <span v-else-if="session.isBooked" class="session-status booked">
+                    Already Booked
+                  </span>
+                  <span v-else class="session-status full">
+                    Session Full
+                  </span>
+                </div>
               </div>
             </div>
-            <button 
-              v-if="selectedDate && selectedTime" 
-              @click="bookSelectedTime" 
-              class="confirm-booking-btn"
-            >
-              Confirm Booking
-            </button>
           </div>
         </div>
         
@@ -135,6 +181,21 @@ export default {
       required: true
     }
   },
+  computed: {
+     // Get filter parameters from route query
+     filterDate() {
+       return this.$route.query.date || '';
+     },
+     filterTime() {
+       return this.$route.query.time || '';
+     },
+     filterCity() {
+       return this.$route.query.city || '';
+     },
+     hasActiveFilters() {
+       return this.filterDate || this.filterTime || this.filterCity;
+     }
+   },
   data() {
     return {
       mentor: {
@@ -150,21 +211,10 @@ export default {
         university: '',
         graduationYear: ''
       },
-      selectedDate: '',
-      selectedTime: '',
-      today: new Date().toISOString().split('T')[0],
-      isCalendarVisible: false,
-      availableTimeSlots: [
-        { value: '09:00', label: '9:00 AM' },
-        { value: '10:00', label: '10:00 AM' },
-        { value: '11:00', label: '11:00 AM' },
-        { value: '12:00', label: '12:00 PM' },
-        { value: '13:00', label: '1:00 PM' },
-        { value: '14:00', label: '2:00 PM' },
-        { value: '15:00', label: '3:00 PM' },
-        { value: '16:00', label: '4:00 PM' },
-        { value: '17:00', label: '5:00 PM' }
-      ]
+      availableSessions: [],
+      isLoadingSessions: true,
+      isRequestingBooking: false,
+      showSessions: false
     }
   },
   async mounted() {
@@ -198,18 +248,188 @@ export default {
     goBack() {
       this.$router.go(-1);
     },
-    showCalendar() {
-      this.isCalendarVisible = true;
-    },
-    bookSelectedTime() {
-      if (this.selectedDate && this.selectedTime) {
-        // TODO: Implement actual booking logic
-        alert(`Booking confirmed for ${this.selectedDate} at ${this.selectedTime}`);
-        // Reset selections after booking
-        this.selectedDate = '';
-        this.selectedTime = '';
-        this.isCalendarVisible = false;
+    async showAvailableSessions() {
+      this.showSessions = true;
+      if (this.availableSessions.length === 0) {
+        await this.loadAvailableSessions();
       }
+    },
+    async loadAvailableSessions() {
+      try {
+        this.isLoadingSessions = true;
+        // TODO: Replace with actual API call to get mentor's available sessions
+        // const response = await getMentorAvailableSessions(this.mentorId);
+        // this.availableSessions = response.data;
+        
+        // Mock data for demonstration
+        await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API delay
+        
+        let allSessions = [
+          {
+            id: 1,
+            startTime: '2025-11-15T09:00:00Z',
+            durationMins: 60,
+            city: 'Sydney',
+            address: 'Central Library, 123 George Street',
+            maxParticipants: 3,
+            currentParticipants: 1,
+            isBooked: false
+          },
+          {
+            id: 2,
+            startTime: '2025-11-18T14:00:00Z',
+            durationMins: 90,
+            city: 'Sydney',
+            address: 'Coffee Bean Cafe, 456 Pitt Street',
+            maxParticipants: 2,
+            currentParticipants: 0,
+            isBooked: false
+          },
+          {
+            id: 3,
+            startTime: '2025-12-20T10:00:00Z',
+            durationMins: 60,
+            city: 'Sydney',
+            address: 'University of Sydney, Building A',
+            maxParticipants: 4,
+            currentParticipants: 4,
+            isBooked: false
+          },
+          {
+            id: 4,
+            startTime: '2025-12-22T16:00:00Z',
+            durationMins: 120,
+            city: 'Melbourne',
+            address: 'State Library Victoria, 328 Swanston Street',
+            maxParticipants: 2,
+            currentParticipants: 1,
+            isBooked: true
+          },
+          {
+            id: 5,
+            startTime: '2025-11-15T14:00:00Z',
+            durationMins: 60,
+            city: 'Melbourne',
+            address: '100 Collins Street, Melbourne CBD',
+            maxParticipants: 4,
+            currentParticipants: 1,
+            isBooked: false
+          },
+          {
+            id: 6,
+            startTime: '2025-11-18T09:00:00Z',
+            durationMins: 90,
+            city: 'Brisbane',
+            address: '200 Queen Street, Brisbane CBD',
+            maxParticipants: 3,
+            currentParticipants: 0,
+            isBooked: false
+          }
+        ];
+        
+        // Apply filters from dashboard
+        if (this.filterDate) {
+          const filterDateStr = new Date(this.filterDate).toISOString().split('T')[0];
+          allSessions = allSessions.filter(session => {
+            const sessionDateStr = new Date(session.startTime).toISOString().split('T')[0];
+            return sessionDateStr === filterDateStr;
+          });
+        }
+        
+        if (this.filterTime) {
+          allSessions = allSessions.filter(session => {
+            const sessionTime = new Date(session.startTime).toTimeString().slice(0, 5);
+            return sessionTime === this.filterTime;
+          });
+        }
+        
+        if (this.filterCity) {
+          allSessions = allSessions.filter(session => {
+            return session.city.toLowerCase() === this.filterCity.toLowerCase();
+          });
+        }
+        
+        this.availableSessions = allSessions;
+      } catch (error) {
+        console.error('Failed to load available sessions:', error);
+        this.availableSessions = [];
+      } finally {
+        this.isLoadingSessions = false;
+      }
+    },
+    async requestBooking(session) {
+      try {
+        this.isRequestingBooking = true;
+        
+        // TODO: Replace with actual API call to request booking
+        // const response = await requestSessionBooking(session.id);
+        
+        // Simulate API call
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        alert(`Booking request sent for session on ${this.formatDate(session.startTime)} at ${this.formatTime(session.startTime)}. The mentor will review your request.`);
+        
+        // Optionally refresh the sessions list
+        await this.loadAvailableSessions();
+        
+      } catch (error) {
+        console.error('Failed to request booking:', error);
+        alert('Failed to send booking request. Please try again.');
+      } finally {
+        this.isRequestingBooking = false;
+      }
+    },
+    formatDate(dateString) {
+      const date = new Date(dateString);
+      return date.toLocaleDateString('en-AU', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+    },
+    formatTime(dateString) {
+      const date = new Date(dateString);
+      return date.toLocaleTimeString('en-AU', {
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true
+      });
+    },
+    formatEndTime(startTimeString, durationMins) {
+      const startTime = new Date(startTimeString);
+      const endTime = new Date(startTime.getTime() + durationMins * 60000);
+      return endTime.toLocaleTimeString('en-AU', {
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true
+      });
+    },
+    
+    // Format filter display methods
+    formatFilterDate(dateStr) {
+      const date = new Date(dateStr);
+      return date.toLocaleDateString('en-US', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+    },
+    
+    formatFilterTime(timeStr) {
+      const [hours, minutes] = timeStr.split(':');
+      const date = new Date();
+      date.setHours(parseInt(hours), parseInt(minutes));
+      return date.toLocaleTimeString('en-US', {
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true
+      });
+    },
+    
+    formatFilterCity(cityStr) {
+      return cityStr.charAt(0).toUpperCase() + cityStr.slice(1);
     }
   }
 }
@@ -332,6 +552,12 @@ export default {
   gap: 12px;
 }
 
+.book-session-container {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 24px;
+}
+
 .book-session-btn {
   background: #007bff;
   color: #ffffff;
@@ -343,10 +569,17 @@ export default {
   font-size: 16px;
   cursor: pointer;
   transition: background-color 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .book-session-btn:hover {
   background: #0056b3;
+}
+
+.book-icon {
+  font-size: 18px;
 }
 
 /* Calendar Section */
@@ -523,6 +756,230 @@ export default {
   font-size: 14px;
   color: #888888;
   margin: 0;
+}
+
+/* Available Sessions Styles */
+.available-sessions-section {
+  width: 100%;
+}
+
+.sessions-title {
+  font-family: Inter, sans-serif;
+  font-weight: 600;
+  font-size: 20px;
+  color: #1f2937;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+/* Filter Info Styles */
+.filter-info {
+  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+  border: 1px solid #0ea5e9;
+  border-radius: 12px;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.filter-info-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.filter-icon {
+  font-size: 1.1rem;
+  margin-right: 0.5rem;
+}
+
+.filter-text {
+  font-size: 0.9rem;
+  color: #0369a1;
+  font-weight: 500;
+}
+
+.active-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.filter-tag {
+  background: #ffffff;
+  color: #0369a1;
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  border: 1px solid #0ea5e9;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.loading-state,
+.no-sessions-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: #6b7280;
+}
+
+.no-sessions-subtitle {
+  font-size: 14px;
+  margin-top: 8px;
+  opacity: 0.8;
+}
+
+.sessions-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-height: 400px;
+  overflow-y: auto;
+  padding-right: 8px;
+}
+
+.session-card {
+  background: #f8fafc;
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 20px;
+  transition: all 0.3s ease;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.session-card:hover {
+  border-color: #cbd5e1;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+.session-card.session-booked {
+  background: #fef3c7;
+  border-color: #f59e0b;
+}
+
+.session-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.session-date {
+  font-weight: 600;
+  font-size: 16px;
+  color: #1f2937;
+}
+
+.session-time {
+  font-weight: 500;
+  font-size: 14px;
+  color: #4f46e5;
+}
+
+.session-duration {
+  font-size: 13px;
+  color: #6b7280;
+  background: #e5e7eb;
+  padding: 4px 8px;
+  border-radius: 6px;
+  display: inline-block;
+  width: fit-content;
+}
+
+.session-location {
+  font-size: 14px;
+  color: #059669;
+  font-weight: 500;
+}
+
+.session-address {
+  font-size: 12px;
+  color: #6b7280;
+  margin-left: 16px;
+}
+
+.session-participants {
+  font-size: 12px;
+  color: #7c3aed;
+  background: #ede9fe;
+  padding: 4px 8px;
+  border-radius: 6px;
+  display: inline-block;
+  width: fit-content;
+}
+
+.session-actions {
+  display: flex;
+  align-items: center;
+}
+
+.request-booking-btn {
+  background: #4f46e5;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 12px 20px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+
+.request-booking-btn:hover:not(:disabled) {
+  background: #4338ca;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+}
+
+.request-booking-btn:disabled {
+  background: #9ca3af;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.session-status {
+  font-size: 12px;
+  font-weight: 500;
+  padding: 8px 12px;
+  border-radius: 6px;
+  white-space: nowrap;
+}
+
+.session-status.booked {
+  background: #fef3c7;
+  color: #92400e;
+  border: 1px solid #f59e0b;
+}
+
+.session-status.full {
+  background: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #ef4444;
+}
+
+/* Scrollbar Styling */
+.sessions-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.sessions-list::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 3px;
+}
+
+.sessions-list::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+
+.sessions-list::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
 }
 
 /* Responsive Design */

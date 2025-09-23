@@ -29,7 +29,7 @@
             </div>
             <div class="user-info">
               <h2 class="user-name">{{ profile.fullName || 'John Doe' }}</h2>
-              <p class="user-title">{{ profile.professionalTitle || 'Software Engineer' }}</p>
+              <p class="user-location">{{ profile.location || 'Melbourne / AEST' }}</p>
             </div>
           </div>
         </div>
@@ -62,31 +62,7 @@
             </div>
           </div>
         
-          <!-- Professional Title Field -->
-          <div class="form-field">
-            <label class="field-label">Professional Title</label>
-            <div class="input-container">
-              <input 
-                type="text" 
-                v-model="profile.professionalTitle"
-                class="form-input"
-                placeholder="Software Engineer"
-              />
-            </div>
-          </div>
-          
-          <!-- Company Field -->
-          <div class="form-field">
-            <label class="field-label">Company</label>
-            <div class="input-container">
-              <input 
-                type="text" 
-                v-model="profile.company"
-                class="form-input"
-                placeholder="Tech Solutions Inc."
-              />
-            </div>
-          </div>
+
           
           <!-- Bio Field -->
           <div class="form-field">
@@ -101,19 +77,7 @@
             </div>
           </div>
           
-          <!-- Areas of Expertise Field -->
-          <div class="form-field">
-            <label class="field-label">Areas of Expertise (Tags)</label>
-            <div class="input-container">
-              <input 
-                type="text" 
-                v-model="profile.expertise"
-                class="form-input"
-                placeholder="e.g., Javascript, UI/UX, Career Advice"
-              />
-            </div>
 
-          </div>
           
           <!-- Contact Information Section -->
           <div class="contact-section">
@@ -175,12 +139,7 @@
                     <p class="education-period">{{ education.period }}</p>
                   </div>
                 </div>
-                <div v-if="education.skills && education.skills.length > 0" class="education-skills">
-                  <svg class="skills-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M12 2L13.09 8.26L20 9L13.09 9.74L12 16L10.91 9.74L4 9L10.91 8.26L12 2Z" fill="currentColor"/>
-                  </svg>
-                  <span class="skills-text">{{ education.skills.length <= 2 ? education.skills.join(', ') : education.skills.slice(0, 2).join(', ') + ' and +' + (education.skills.length - 2) + ' skills' }}</span>
-                </div>
+
               </div>
               
               <div v-else class="education-edit">
@@ -211,16 +170,7 @@
                     placeholder="Feb 2022 - Nov 2025"
                   />
                 </div>
-                <div class="form-field">
-                  <label class="field-label">Skills (comma separated)</label>
-                  <input 
-                    type="text" 
-                    v-model="education.skillsString"
-                    @input="updateEducationSkills(index, education.skillsString)"
-                    class="form-input"
-                    placeholder="C, JavaScript, Python"
-                  />
-                </div>
+
                 <button class="remove-item-btn" @click="removeEducation(index)">
                   Remove
                 </button>
@@ -229,6 +179,92 @@
             
             <div v-if="profile.education.length === 0" class="empty-education">
               <p class="empty-text">No education added yet. Click + to add your first education.</p>
+            </div>
+          </div>
+          
+          <!-- Experience Section -->
+          <div class="experience-section">
+            <div class="section-header">
+              <h3 class="section-title">Experience</h3>
+              <div class="section-actions">
+                <button class="add-item-btn" @click="addExperience">
+                  <svg class="plus-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 5v14m-7-7h14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </button>
+                <button class="edit-section-btn" @click="toggleExperienceEdit">
+                  <svg class="edit-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="m18.5 2.5 3 3L12 15l-4 1 1-4 9.5-9.5z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </button>
+              </div>
+            </div>
+            
+            <div v-for="(experience, index) in profile.experience" :key="index" class="experience-item">
+              <div v-if="!isEditingExperience" class="experience-display">
+                <div class="experience-header">
+                  <img :src="experience.logo || '/default-company-logo.svg'" alt="Company Logo" class="company-logo" />
+                  <div class="experience-info">
+                    <h4 class="company-name">{{ experience.company }}</h4>
+                    <p class="position-info">{{ experience.position }}</p>
+                    <p class="experience-period">{{ experience.period }}</p>
+                  </div>
+                </div>
+                <div v-if="experience.skills && experience.skills.length > 0" class="experience-skills">
+                  <svg class="skills-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 2L13.09 8.26L20 9L13.09 9.74L12 16L10.91 9.74L4 9L10.91 8.26L12 2Z" fill="currentColor"/>
+                  </svg>
+                  <span class="skills-text">{{ experience.skills.length <= 2 ? experience.skills.join(', ') : experience.skills.slice(0, 2).join(', ') + ' and +' + (experience.skills.length - 2) + ' skills' }}</span>
+                </div>
+              </div>
+              
+              <div v-else class="experience-edit">
+                <div class="form-field">
+                  <label class="field-label">Company</label>
+                  <input 
+                    type="text" 
+                    v-model="experience.company"
+                    class="form-input"
+                    placeholder="Tech Solutions Inc."
+                  />
+                </div>
+                <div class="form-field">
+                  <label class="field-label">Position</label>
+                  <input 
+                    type="text" 
+                    v-model="experience.position"
+                    class="form-input"
+                    placeholder="Software Engineer"
+                  />
+                </div>
+                <div class="form-field">
+                  <label class="field-label">Period</label>
+                  <input 
+                    type="text" 
+                    v-model="experience.period"
+                    class="form-input"
+                    placeholder="Jan 2023 - Present"
+                  />
+                </div>
+                <div class="form-field">
+                  <label class="field-label">Skills (comma separated)</label>
+                  <input 
+                    type="text" 
+                    v-model="experience.skillsString"
+                    @input="updateExperienceSkills(index, experience.skillsString)"
+                    class="form-input"
+                    placeholder="JavaScript, React, Node.js"
+                  />
+                </div>
+                <button class="remove-item-btn" @click="removeExperience(index)">
+                  Remove
+                </button>
+              </div>
+            </div>
+            
+            <div v-if="profile.experience.length === 0" class="empty-experience">
+              <p class="empty-text">No experience added yet. Click + to add your first experience.</p>
             </div>
           </div>
           
@@ -255,26 +291,32 @@ export default {
       profile: {
         fullName: 'John Doe',
         location: 'Melbourne / AEST',
-        company: 'Tech Solutions Inc.',
-        professionalTitle: 'Software Engineer',
         phone: '000-000-0000',
         socialMedia: '@',
         bio: 'Experience software engineer passionate about mentoring the next generation of tech talent. Skilled in web development.',
-        expertise: '',
         avatar: null,
         education: [
           {
             university: 'University of Melbourne',
             degree: 'Bachelor of Science, Computer Software System',
             period: 'Feb 2022 - Nov 2025',
-            skills: ['C', 'JavaScript'],
-            skillsString: 'C, JavaScript',
+            logo: null
+          }
+        ],
+        experience: [
+          {
+            company: 'Tech Solutions Inc.',
+            position: 'Software Engineer',
+            period: 'Jan 2023 - Present',
+            skills: ['JavaScript', 'React', 'Node.js'],
+            skillsString: 'JavaScript, React, Node.js',
             logo: null
           }
         ]
       },
       originalProfile: {},
-      isEditingEducation: false
+      isEditingEducation: false,
+      isEditingExperience: false
     }
   },
   mounted() {
@@ -297,8 +339,6 @@ export default {
         university: '',
         degree: '',
         period: '',
-        skills: [],
-        skillsString: '',
         logo: null
       })
       this.isEditingEducation = true
@@ -309,22 +349,41 @@ export default {
     toggleEducationEdit() {
       this.isEditingEducation = !this.isEditingEducation
     },
-    updateEducationSkills(index, skillsString) {
+    addExperience() {
+      this.profile.experience.push({
+        company: '',
+        position: '',
+        period: '',
+        skills: [],
+        skillsString: '',
+        logo: null
+      })
+      this.isEditingExperience = true
+    },
+    removeExperience(index) {
+      this.profile.experience.splice(index, 1)
+    },
+    toggleExperienceEdit() {
+      this.isEditingExperience = !this.isEditingExperience
+    },
+    updateExperienceSkills(index, skillsString) {
       const skills = skillsString.split(',').map(skill => skill.trim()).filter(skill => skill.length > 0)
-      this.profile.education[index].skills = skills
-      this.profile.education[index].skillsString = skillsString
+      this.profile.experience[index].skills = skills
+      this.profile.experience[index].skillsString = skillsString
     },
     saveProfile() {
       console.log('Saving profile:', this.profile)
       // Here you would typically make an API call to save the profile
       this.originalProfile = { ...this.profile }
       this.isEditingEducation = false
+      this.isEditingExperience = false
       // Show success message
       alert('Profile saved successfully!')
     },
     cancelChanges() {
       this.profile = { ...this.originalProfile }
       this.isEditingEducation = false
+      this.isEditingExperience = false
       console.log('Changes cancelled')
     }
   }
@@ -446,12 +505,12 @@ export default {
   margin: 0 0 8px 0;
 }
 
-.user-title {
+.user-location {
   font-family: Inter, sans-serif;
   font-weight: 400;
-  font-size: 16px;
+  font-size: 14px;
   color: #6b7280;
-  margin: 0;
+  margin: 8px 0 0 0;
 }
 
 /* Right Side - Form Fields */
@@ -586,8 +645,85 @@ export default {
 }
 
 .contact-section,
-.education-section {
+.education-section,
+.experience-section {
   margin-top: 32px;
+}
+
+/* Experience Items */
+.experience-item {
+  margin-bottom: 20px;
+  border: 1px solid #f3f4f6;
+  border-radius: 12px;
+  padding: 20px;
+  background: #fafbfc;
+}
+
+.experience-display {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.experience-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.company-logo {
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.experience-info {
+  flex: 1;
+}
+
+.company-name {
+  font-family: Inter, sans-serif;
+  font-weight: 600;
+  font-size: 16px;
+  color: #1f2937;
+  margin: 0 0 4px 0;
+}
+
+.position-info {
+  font-family: Inter, sans-serif;
+  font-weight: 400;
+  font-size: 14px;
+  color: #4b5563;
+  margin: 0 0 4px 0;
+}
+
+.experience-period {
+  font-family: Inter, sans-serif;
+  font-weight: 400;
+  font-size: 14px;
+  color: #6b7280;
+  margin: 0;
+}
+
+.experience-skills {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.experience-edit {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.empty-experience {
+  text-align: center;
+  padding: 40px 20px;
+  color: #9ca3af;
 }
 
 /* Education Items */
