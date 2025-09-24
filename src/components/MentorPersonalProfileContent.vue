@@ -105,7 +105,7 @@
                 <div class="session-actions">
                   <button 
                     v-if="!session.isBooked && (session.currentParticipants || 0) < session.maxParticipants"
-                    @click="requestBooking(session)"
+                    @click="openBooking(session)"
                     class="request-booking-btn"
                     :disabled="isRequestingBooking"
                   >
@@ -119,6 +119,15 @@
                   </span>
                 </div>
               </div>
+
+              <!-- Modal -->
+              <BookingModal
+                v-if="showBooking"
+                :slot="selectedSlot"
+                @close="closeBooking"
+                @submitted="handleSubmitted"
+              />
+
             </div>
           </div>
         </div>
@@ -173,8 +182,13 @@
 </template>
 
 <script>
+import BookingModal from '@/components/BookingModal.vue'
+
 export default {
   name: 'MentorPersonalProfileContent',
+  components: {
+    BookingModal
+  },
   props: {
     mentorId: {
       type: String,
@@ -214,7 +228,9 @@ export default {
       availableSessions: [],
       isLoadingSessions: true,
       isRequestingBooking: false,
-      showSessions: false
+      showSessions: false,
+      showBooking: false,
+      selectedSlot: null
     }
   },
   async mounted() {
@@ -303,7 +319,7 @@ export default {
             address: 'State Library Victoria, 328 Swanston Street',
             maxParticipants: 2,
             currentParticipants: 1,
-            isBooked: true
+            isBooked: true 
           },
           {
             id: 5,
@@ -378,6 +394,21 @@ export default {
       } finally {
         this.isRequestingBooking = false;
       }
+    },
+    openBooking(session) {
+      this.selectedSlot = session;
+      this.showBooking = true;
+    },
+    closeBooking() {
+      this.showBooking = false;
+      this.selectedSlot = null;
+    },
+    handleSubmitted() {
+      this.closeBooking();
+      // Refresh sessions to show updated participant count or booked status
+      this.loadAvailableSessions(); 
+      // Optionally, can emit an event to the parent to show a success message
+      // this.$emit('booking-successful');
     },
     formatDate(dateString) {
       const date = new Date(dateString);
