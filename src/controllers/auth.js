@@ -12,6 +12,27 @@ exports.register = async (req, res) => {
       return res.status(409).json({ error: 'This email address has been linked to an existing account' });
     }
 
+    if (!email || email.trim() === "") {
+        return res.status(400).json({ error: "Email is required" });
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+        return res.status(400).json({ error: "Invalid email format" });
+    }
+
+    if (!password || password.trim() === "") {
+        return res.status(400).json({ error: "Password is required" });
+    }
+
+    if (fullName.length > 255) {
+        return res.status(400).json({ error: "Full name too long" });
+    }
+
+    if (password.length > 1024) {
+        return res.status(400).json({ error: "Password too long" });
+    }
+
     // Hash password in create user
     const hashedPassword = await bcrypt.hash(password, 10);
     const user = await prisma.user.create({
@@ -32,6 +53,20 @@ exports.register = async (req, res) => {
 
 exports.login = async (req, res) => {
   const { email, password } = req.body;
+  
+  if (!email || email.trim() === "") {
+    return res.status(400).json({ error: "Email is required" });
+  }
+
+  if (!password || password.trim() === "") {
+    return res.status(400).json({ error: "Password is required" });
+  }
+
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) {
+    return res.status(400).json({ error: "Invalid email format" });
+  }
+
   try {
     // Check credentials
     const user = await prisma.user.findUnique({ where: { email } });

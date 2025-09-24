@@ -4,25 +4,47 @@ const prisma = new PrismaClient();
 // This function can be accessed by mentee to book a mentor
 exports.createBooking = async (req, res) => {
   try {
-    const { availabilitySlotId, locationDetails } = req.body;
+    const { 
+      availabilitySlotId, 
+      topic,
+      description,
+      note,
+      numParticipants = 1,  
+    } = req.body;
     const userId = req.user.id;
 
-    const slot = await prisma.availabilitySlot.findUnique({ where: { id: availabilitySlotId } });
+    // Basic validation
+    if (!availabilitySlotId) {
+      return res.status(400).json({ error: 'availabilitySlotId is required' });
+    }
+    if (typeof numParticipants !== 'number' || numParticipants < 1) {
+      return res.status(400).json({ error: 'numParticipants must be a number ≥ 1' });
+    }
 
+    // Fetch slot
+    const slot = await prisma.availabilitySlot.findUnique({ 
+      where: { id: availabilitySlotId } 
+    });
     if (!slot || slot.isBooked) {
-        return res.status(400).json({ error: 'Slot unavailable or already booked' });
+      return res.status(400).json({ error: 'Slot unavailable or already booked' });
+    }
+    if (numParticipants > slot.maxParticipants) {
+      return res.status(400).json({
+        error: `numParticipants cannot exceed maxParticipants (${slot.maxParticipants})`
+      });
     }
 
     const booking = await prisma.booking.create({
-        data: {
+      data: {
         menteeId: userId,
         mentorId: slot.mentorId,
         availabilitySlotId,
-        topic: 'academic topic',
-        locationType: 'in_person',
-        locationDetails: locationDetails || '',
+        topic: topic || 'academic topic',
+        description,
+        note,
+        numParticipants,
         status: 'pending'
-        }
+      }
     });
 
     res.status(201).json({ message: 'Booking request sent', booking });
@@ -39,16 +61,16 @@ exports.cancelBooking = async (req, res) => {
     const userId = req.user.id;
 
     const booking = await prisma.booking.findUnique({
-        where: { id: bookingId }
+      where: { id: bookingId }
     });
 
     if (!booking || booking.menteeId !== userId) {
-        return res.status(403).json({ error: 'Unauthorized or booking not found' });
+      return res.status(403).json({ error: 'Unauthorized or booking not found' });
     }
 
     const cancelled = await prisma.booking.update({
-        where: { id: bookingId },
-        data: { status: 'cancelled' }
+      where: { id: bookingId },
+      data: { status: 'cancelled' }
     });
 
     res.json({ message: 'Booking cancelled', booking: cancelled });
@@ -92,6 +114,13 @@ exports.respondToBooking = async (req, res) => {
         data: { status: response }
     });
 
+    if (response === 'accepted') {
+      await prisma.availabilitySlot.update({
+        where: { id: booking.availabilitySlotId },
+        data: { isBooked: true }
+      });
+    }
+
     res.json({ message: `Booking ${response}`, booking: updatedBooking });
   } catch (err) {
     console.error(err);
@@ -117,10 +146,7 @@ exports.getBookingHistory = async (req, res) => {
     const bookings = await prisma.booking.findMany({
       where: {
         [filterField]: userId,
-        status: 'confirmed',
-        availabilitySlot: {
-          endTime: { lt: new Date() } // Only ended bookings
-        }
+        status: 'accepted'
       },
       include: {
         availabilitySlot: true,
@@ -152,25 +178,37 @@ exports.getBookingHistory = async (req, res) => {
       }
     });
     
+    const endedBookings = bookings.filter(booking => {
+      const endTime = new Date(booking.availabilitySlot.startTime);
+      endTime.setMinutes(endTime.getMinutes() + booking.availabilitySlot.durationMins);
+      return endTime < new Date();
+    });
+    
     // Formatted
-    const formattedBookings = bookings.map(booking => ({
-      id: booking.id,
-      topic: booking.topic,
-      startTime: booking.availabilitySlot.startTime,
-      endTime: booking.availabilitySlot.endTime,
-      locationType: booking.locationType,
-      locationDetails: booking.locationDetails,
-      mentor: {
-        id: booking.mentor.id,
-        fullName: booking.mentor.profile?.fullName,
-        profileImageUrl: booking.mentor.profile?.profileImageUrl
-      },
-      mentee: {
-        id: booking.mentee.id,
-        fullName: booking.mentee.profile?.fullName,
-        profileImageUrl: booking.mentee.profile?.profileImageUrl
-      }
-    }));
+    const formattedBookings = endedBookings.map(booking => {
+      const startTime = booking.availabilitySlot.startTime;
+      const endTime = new Date(startTime);
+      endTime.setMinutes(endTime.getMinutes() + booking.availabilitySlot.durationMins);
+      
+      return {
+        id: booking.id,
+        topic: booking.topic,
+        startTime,
+        endTime,
+        locationType: booking.availabilitySlot.locationType,
+        locationDetails: booking.availabilitySlot.address,
+        mentor: {
+          id: booking.mentor.id,
+          fullName: booking.mentor.profile?.fullName,
+          profileImageUrl: booking.mentor.profile?.profileImageUrl
+        },
+        mentee: {
+          id: booking.mentee.id,
+          fullName: booking.mentee.profile?.fullName,
+          profileImageUrl: booking.mentee.profile?.profileImageUrl
+        }
+      };
+    });
     
     res.json(formattedBookings);
   } catch (err) {

@@ -114,3 +114,126 @@ describe("Auth Endpoints", () => {
     expect(res.body.skills).toContain("JavaScript");
   });
 });
+
+describe("Registration Input Validation", () => {
+  it("should reject empty email", async () => {
+    const res = await request(app)
+      .post("/auth/register")
+      .send({
+        fullName: "Test User",
+        email: "",
+        password: "password123"
+      });
+    expect(res.statusCode).toBe(400);
+  });
+
+  it("should reject empty password", async () => {
+    const res = await request(app)
+      .post("/auth/register")
+      .send({
+        fullName: "Test User",
+        email: "empty@example.com",
+        password: ""
+      });
+    expect(res.statusCode).toBe(400);
+  });
+
+  it("should reject invalid email format", async () => {
+    const res = await request(app)
+      .post("/auth/register")
+      .send({
+        fullName: "Test User",
+        email: "not-an-email",
+        password: "password123"
+      });
+    expect(res.statusCode).toBe(400);
+  });
+
+  it("should accept non-ASCII characters in name", async () => {
+    const res = await request(app)
+      .post("/auth/register")
+      .send({
+        fullName: "Æ张三김สมศักดิ์衞عفيفオバマ",
+        email: "nonasciiname@example.com",
+        password: "password123"
+      });
+    expect(res.statusCode).toBe(201);
+  });
+
+  it("should accept non-ASCII characters in passwords", async () => {
+    const res = await request(app)
+      .post("/auth/register")
+      .send({
+        fullName: "Test User",
+        email: "nonasciipassword@example.com",
+        password: "Æ张三김สมศักดิ์衞عفيفオバマ"
+      });
+    expect(res.statusCode).toBe(201);
+  });
+
+  it("should reject extremely long names", async () => {
+    const longName = "a".repeat(256); // Assuming 255 is max length
+    const res = await request(app)
+      .post("/auth/register")
+      .send({
+        fullName: longName,
+        email: "longname@example.com",
+        password: "password123"
+      });
+    expect(res.statusCode).toBe(400);
+  });
+
+  it("should reject extremely long passwords", async () => {
+    const longPassword = "a".repeat(1025); // Assuming 1024 is max length
+    const res = await request(app)
+      .post("/auth/register")
+      .send({
+        fullName: "Test User",
+        email: "longpass@example.com",
+        password: longPassword
+      });
+    expect(res.statusCode).toBe(400);
+  });
+});
+
+describe("Login Edge Cases", () => {
+  it("should reject login with invalid or empty email", async () => {
+    const res = await request(app)
+      .post("/auth/login")
+      .send({
+        email: "",
+        password: "password123"
+      });
+    expect(res.statusCode).toBe(400);
+  });
+
+  it("should reject login with empty password", async () => {
+    const res = await request(app)
+      .post("/auth/login")
+      .send({
+        email: "test@example.com",
+        password: ""
+      });
+    expect(res.statusCode).toBe(400);
+  });
+
+  it("should reject login with non-existent email", async () => {
+    const res = await request(app)
+      .post("/auth/login")
+      .send({
+        email: "nonexistent@example.com",
+        password: "password123"
+      });
+    expect(res.statusCode).toBe(401);
+  });
+
+  it("should reject login with SQL injection attempt", async () => {
+    const res = await request(app)
+      .post("/auth/login")
+      .send({
+        email: "sqlinjection@example.com",
+        password: "' OR '1'='1"
+      });
+    expect(res.statusCode).toBe(401);
+  });
+});
