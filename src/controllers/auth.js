@@ -26,7 +26,7 @@ exports.register = async (req, res) => {
         return res.status(400).json({ error: "Password is required" });
     }
 
-    if (fullName.length > 255) {
+    if (fullName && fullName.length > 255) {
         return res.status(400).json({ error: "Full name too long" });
     }
 
