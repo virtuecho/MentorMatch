@@ -1,6 +1,7 @@
 const jwt = require('jsonwebtoken')
 const bcrypt = require('bcrypt');
 const { PrismaClient } = require('@prisma/client');
+const { connect } = require('../app');
 const prisma = new PrismaClient();
 
 exports.register = async (req, res) => {
@@ -106,33 +107,6 @@ exports.getProfile = async (req, res) => {
   }
 };
 
-exports.updateProfile = async (req, res) => {
-  try {
-    const userId = req.user.id;
-    const { fullName, bio, location, profileImageUrl, linkedinUrl, websiteUrl } = req.body;
-
-    const updatedProfile = await prisma.userProfile.update({
-      where: { userId },
-      data: {
-        fullName,
-        bio,
-        location,
-        profileImageUrl,
-        linkedinUrl,
-        websiteUrl
-      }
-    });
-
-    res.json({ message: 'Profile updated', profile: updatedProfile });
-  } catch (err) {
-    if (err.code === 'P2025') {
-      return res.status(404).json({ error: 'Profile not found' });
-    }
-    console.error('Update profile error:', err);
-    res.status(500).json({ error: 'Failed to update profile' });
-  }
-};
-
 // Get public mentor profile accessible by anyone
 exports.getMentorPublicProfile = async (req, res) => {
   try {
@@ -184,3 +158,128 @@ exports.getMentorPublicProfile = async (req, res) => {
     res.status(500).json({ error: 'Failed to fetch mentor profile' });
   }
 };
+
+// Function to update profile
+exports.updateProfile = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const {
+      fullName,
+      bio,
+      location,
+      phone,
+      socialMedia,
+      profileImageUrl,
+      linkedinUrl,
+      websiteUrl
+    } = req.body;
+
+    if (fullName !== undefined && fullName.trim() === '') {
+      return res.status(400).json({ error: 'Full name cannot be empty' });
+    }
+
+    // Build update object only with provided fields
+    const updateData = {};
+    if (fullName !== undefined) updateData.fullName = fullName;
+    if (bio !== undefined) updateData.bio = bio;
+    if (location !== undefined) updateData.location = location;
+    if (phone !== undefined) updateData.phone = phone;
+    if (socialMedia !== undefined) updateData.socialMedia = socialMedia;
+    if (profileImageUrl !== undefined) updateData.profileImageUrl = profileImageUrl;
+    if (linkedinUrl !== undefined) updateData.linkedinUrl = linkedinUrl;
+    if (websiteUrl !== undefined) updateData.websiteUrl = websiteUrl;
+
+    const updatedProfile = await prisma.userProfile.update({
+      where: { userId },
+      data: updateData
+    });
+
+    if (Array.isArray(req.body.educations)) {
+      await updateEducations(userId, req.body.educations);
+    }
+
+    if (Array.isArray(req.body.experience)) {
+      await updateExperiences(userId, req.body.experience);
+    }
+
+    res.json({ message: 'Profile updated', profile: updatedProfile });
+  } catch (err) {
+    if (err.code === 'P2025') {
+      return res.status(404).json({ error: 'Profile not found' });
+    }
+    console.error('Update profile error:', err);
+    res.status(500).json({ error: 'Failed to update profile' });
+  }
+};
+
+
+// Helpers for updating profile
+async function updateEducations(userId, educations) {
+  for (const edu of educations) {
+    const { action, id, university, degree, startYear, endYear, major } = edu;
+    if (action === 'add') {
+      await prisma.education.create({
+        data: { 
+          university,
+          degree,
+          startYear,
+          endYear,
+          major,
+          userProfile: {
+            connect: {
+                userId: userId
+			}
+		  }
+        }
+      });
+    } else if (action === 'edit' && id) {
+      await prisma.education.update({
+        where: { id },
+        data: {
+          university,
+          degree,
+          endYear,
+          startYear,
+          major
+        }
+      });
+    } else if (action === 'delete' && id) {
+      await prisma.education.delete({ where: { id: id } });
+    }
+  }
+}
+
+async function updateExperiences(userId, experiences) {
+  for (const exp of experiences) {
+    const { action, id, company, position, startYear, endYear, expertise } = exp
+    if (action === 'add') {
+      await prisma.experience.create({
+        data: { 
+          userProfile: {
+            connect: {
+              userId: userId
+            }
+          },
+          company,
+          position,
+          startYear,
+          endYear,
+          expertise
+        }
+      });
+    } else if (action === 'edit' && id) {
+      await prisma.experience.update({
+        where: { id },
+        data: {
+          company,
+          position,
+          startYear,
+          endYear,
+          expertise
+        }
+      });
+    } else if (action === 'delete' && id) {
+      await prisma.experience.delete({ where: { id: id } });
+    }
+  }
+}

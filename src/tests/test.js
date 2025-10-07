@@ -4,6 +4,9 @@ const { PrismaClient } = require("@prisma/client");
 
 const prisma = new PrismaClient();
 
+let token;
+let userId;
+
 // Clean DB before running tests
 beforeAll(async () => {
   await prisma.mentorSkill.deleteMany();
@@ -15,8 +18,6 @@ afterAll(async () => {
 });
 
 describe("Auth Endpoints", () => {
-  let token;
-  let userId;
 
   it("should register a new user", async () => {
     const res = await request(app)
@@ -235,5 +236,68 @@ describe("Login Edge Cases", () => {
         password: "' OR '1'='1"
       });
     expect(res.statusCode).toBe(401);
+  });
+});
+
+describe("Profile Update", () => {
+  it("should add new education and experience", async () => {
+    const res = await request(app)
+      .put("/auth/profile")
+      .set("Authorization", `Bearer ${token}`)
+      .send({
+        educations: [
+          { action: "add", university: "Uni A", degree: "BSc", startYear: 2020, endYear: 2023, major: "CS" }
+        ],
+        experience: [
+          { action: "add", company: "Company X", position: "Engineer", startYear: 2021, endYear: 2024 }
+        ]
+      });
+
+    expect(res.statusCode).toBe(200);
+
+    const edu = await prisma.education.findFirst({ where: { university: "Uni A", userId } });
+    const exp = await prisma.experience.findFirst({ where: { company: "Company X", userId } });
+    expect(edu).not.toBeNull();
+    expect(exp).not.toBeNull();
+  });
+
+  it("should edit existing education", async () => {
+    const edu = await prisma.education.create({
+      data: { userId, university: "Uni B", degree: "BA", major: "History", startYear: 2018 }
+    });
+
+    const res = await request(app)
+      .put("/auth/profile")
+      .set("Authorization", `Bearer ${token}`)
+      .send({
+        educations: [
+          { action: "edit", id: edu.id, degree: "MA", major: "Ancient History" }
+        ]
+      });
+
+    expect(res.statusCode).toBe(200);
+
+    const updated = await prisma.education.findUnique({ where: { id: edu.id } });
+    expect(updated.degree).toBe("MA");
+  });
+
+  it("should delete education", async () => {
+    const edu = await prisma.education.create({
+      data: { userId, university: "Uni C", degree: "PhD", major: "Physics", startYear: 2015 }
+    });
+
+    const res = await request(app)
+      .put("/auth/profile")
+      .set("Authorization", `Bearer ${token}`)
+      .send({
+        educations: [
+          { action: "delete", id: edu.id }
+        ]
+      });
+
+    expect(res.statusCode).toBe(200);
+
+    const deleted = await prisma.education.findUnique({ where: { id: edu.id } });
+    expect(deleted).toBeNull();
   });
 });
