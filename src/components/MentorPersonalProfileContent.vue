@@ -97,25 +97,19 @@
                   <div v-if="session.address" class="session-address">
                     {{ session.address }}
                   </div>
-                  <div class="session-participants">
-                    {{ session.currentParticipants || 0 }}/{{ session.maxParticipants }} participants
-                  </div>
                 </div>
                 
                 <div class="session-actions">
                   <button 
-                    v-if="!session.isBooked && (session.currentParticipants || 0) < session.maxParticipants"
+                    v-if="!session.isBooked"
                     @click="openBooking(session)"
                     class="request-booking-btn"
                     :disabled="isRequestingBooking"
                   >
                     {{ isRequestingBooking ? 'Requesting...' : 'Request Booking' }}
                   </button>
-                  <span v-else-if="session.isBooked" class="session-status booked">
+                  <span v-else class="session-status booked">
                     Already Booked
-                  </span>
-                  <span v-else class="session-status full">
-                    Session Full
                   </span>
                 </div>
               </div>
@@ -235,6 +229,7 @@ export default {
   },
   async mounted() {
     await this.loadMentorProfile();
+    await this.loadAvailableSessions();
   },
   methods: {
     async loadMentorProfile() {
@@ -287,8 +282,6 @@ export default {
             durationMins: 60,
             city: 'Sydney',
             address: 'Central Library, 123 George Street',
-            maxParticipants: 3,
-            currentParticipants: 1,
             isBooked: false
           },
           {
@@ -297,8 +290,6 @@ export default {
             durationMins: 90,
             city: 'Sydney',
             address: 'Coffee Bean Cafe, 456 Pitt Street',
-            maxParticipants: 2,
-            currentParticipants: 0,
             isBooked: false
           },
           {
@@ -307,9 +298,7 @@ export default {
             durationMins: 60,
             city: 'Sydney',
             address: 'University of Sydney, Building A',
-            maxParticipants: 4,
-            currentParticipants: 4,
-            isBooked: false
+            isBooked: true
           },
           {
             id: 4,
@@ -317,8 +306,6 @@ export default {
             durationMins: 120,
             city: 'Melbourne',
             address: 'State Library Victoria, 328 Swanston Street',
-            maxParticipants: 2,
-            currentParticipants: 1,
             isBooked: true 
           },
           {
@@ -327,8 +314,6 @@ export default {
             durationMins: 60,
             city: 'Melbourne',
             address: '100 Collins Street, Melbourne CBD',
-            maxParticipants: 4,
-            currentParticipants: 1,
             isBooked: false
           },
           {
@@ -337,8 +322,6 @@ export default {
             durationMins: 90,
             city: 'Brisbane',
             address: '200 Queen Street, Brisbane CBD',
-            maxParticipants: 3,
-            currentParticipants: 0,
             isBooked: false
           }
         ];
@@ -404,11 +387,16 @@ export default {
       this.selectedSlot = null;
     },
     handleSubmitted() {
+      if (this.selectedSlot) {
+        const bookedSession = this.availableSessions.find(
+          session => session.id === this.selectedSlot.id
+        );
+        if (bookedSession) {
+          bookedSession.isBooked = true;
+        }
+      }
       this.closeBooking();
-      // Refresh sessions to show updated participant count or booked status
-      this.loadAvailableSessions(); 
-      // Optionally, can emit an event to the parent to show a success message
-      // this.$emit('booking-successful');
+      // Refresh sessions to show updated booked status
     },
     formatDate(dateString) {
       const date = new Date(dateString);
@@ -934,16 +922,6 @@ export default {
   margin-left: 16px;
 }
 
-.session-participants {
-  font-size: 12px;
-  color: #7c3aed;
-  background: #ede9fe;
-  padding: 4px 8px;
-  border-radius: 6px;
-  display: inline-block;
-  width: fit-content;
-}
-
 .session-actions {
   display: flex;
   align-items: center;
@@ -986,12 +964,6 @@ export default {
   background: #fef3c7;
   color: #92400e;
   border: 1px solid #f59e0b;
-}
-
-.session-status.full {
-  background: #fee2e2;
-  color: #991b1b;
-  border: 1px solid #ef4444;
 }
 
 /* Scrollbar Styling */
