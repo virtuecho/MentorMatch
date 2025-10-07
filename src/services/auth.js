@@ -19,5 +19,12 @@ export const logout = () => {
     return Promise.resolve();
 };
 
-// Profile
+// See own profile
 export const getProfile = () => API.get("/auth/profile");
+
+// Update profile
+export const updateProfile = (payload) => {
+    const res = API.put("/auth/profile", payload);
+    return res.data;
+}
+
