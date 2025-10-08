@@ -82,6 +82,8 @@
 </template>
 
 <script>
+import { getMenteeBookings } from '@/services/booking';
+
 export default {
   name: 'MyBookingsContent',
   data() {
@@ -89,6 +91,8 @@ export default {
       activeFilter: 'all',
       showCancelModal: false,
       bookingToCancel: null,
+      isLoading: false,
+      errorMessage: '',
       filterTabs: [
         { id: 'all', label: 'All' },
         { id: 'pending', label: 'Pending' },
@@ -96,22 +100,7 @@ export default {
         { id: 'rejected', label: 'Rejected' },
         { id: 'completed', label: 'Completed' }
       ],
-      bookings: [
-        {
-          id: 1,
-          status: 'Accepted',
-          time: 'Thu 22 Aug, 10:30 AEST • Carlton',
-          mentor: 'Dr. Chen',
-          mentorAvatar: '/default-avatar.jpg'
-        },
-        {
-          id: 2,
-          status: 'Pending',
-          time: 'Fri 23 Aug, 14:00 AEST • Parkville',
-          mentor: 'Prof. Zhang',
-          mentorAvatar: '/default-avatar.jpg'
-        }
-      ]
+      bookings: []
     }
   },
   computed: {
@@ -125,6 +114,40 @@ export default {
     }
   },
   methods: {
+    async fetchBookings() {
+      this.isLoading = true
+      this.errorMessage = ''
+      try {
+        const res = await getMenteeBookings()
+        this.bookings = res.data.map(b => ({
+          id: b.id,
+          status: b.status.charAt(0).toUpperCase() + b.status.slice(1), // capitalize
+          time: this.formatSlotTime(b.slot),
+          mentor: b.counterpart?.fullName || 'Unknown mentor',
+          mentorAvatar: b.counterpart?.profileImageUrl || '/default-avatar.jpg'
+        }))
+      } catch (err) {
+        console.error('Failed to fetch bookings:', err)
+        this.errorMessage = 'Failed to load your bookings.'
+      } finally {
+        this.isLoading = false
+      }
+    },
+
+    formatSlotTime(slot) {
+      if (!slot) return 'No slot info'
+      const start = new Date(slot.startTime)
+      const options = {
+        weekday: 'short',
+        day: '2-digit',
+        month: 'short',
+        hour: '2-digit',
+        minute: '2-digit',
+        timeZoneName: 'short'
+      }
+      return `${start.toLocaleString('en-AU', options)} • ${slot.location || ''}`
+    },
+
     setActiveFilter(filterId) {
       this.activeFilter = filterId
     },
@@ -142,6 +165,10 @@ export default {
         this.closeCancelModal()
       }
     }
+  },
+
+  mounted() {
+    this.fetchBookings()
   }
 }
 </script>

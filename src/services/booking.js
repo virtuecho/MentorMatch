@@ -16,3 +16,13 @@ export const cancelBooking = ({ bookingId }) => {
 export const respondToBooking = ({ bookingId, response }) => {
     return API.patch("/booking/${bookingId}/respond", { response });
 }
+
+export const getMentorBookings = () => {
+    const role = "mentor";
+    return API.get("/booking", { params: { role } });
+};
+
+export const getMenteeBookings = () => {
+    const role = "mentee";
+    return API.get("/booking", { params: { role } });
+};
