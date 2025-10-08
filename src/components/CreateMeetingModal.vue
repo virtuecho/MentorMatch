@@ -94,21 +94,6 @@
             ></textarea>
           </div>
 
-
-
-          <!-- Max Participants -->
-          <div class="form-group">
-            <label for="maxParticipants" class="form-label">Maximum Participants *</label>
-            <select id="maxParticipants" v-model="formData.maxParticipants" class="form-select" required>
-              <option value="">Select max participants</option>
-              <option value="1">1 person (1-on-1)</option>
-              <option value="2">2 people</option>
-              <option value="3">3 people</option>
-              <option value="4">4 people</option>
-              <option value="5">5 people</option>
-            </select>
-          </div>
-
           <!-- Additional Notes -->
           <div class="form-group">
             <label for="notes" class="form-label">Additional Notes</label>

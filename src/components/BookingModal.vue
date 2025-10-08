@@ -16,7 +16,7 @@
                 <form @submit.prevent="submitBooking">
                     <!-- Topic and Description -->
                     <div class="form-group">
-                        <label for="meeting-topic">Topic</label>
+                        <label for="meeting-topic">Topic *</label>
                         <textarea
                             id="meeting-topic"
                             v-model="meetingTopic"
@@ -50,6 +50,7 @@
 
 <script setup>
     import { ref } from "vue"
+    import { createBooking } from "@/services/booking"
 
     const props = defineProps({
         slot: { type: Object, required: true },
@@ -58,6 +59,7 @@
     const emit = defineEmits(["close", "submitted"])
 
     const meetingTopic = ref("")
+    const description = ref("");
     const isSubmitting = ref(false)
 
     function formatDate(dateString) {
@@ -97,19 +99,21 @@
         isSubmitting.value = true
         
         try {
-            // Simulate API call
-            console.log('Submitting booking request:', {
-            sessionId: props.slot.id,
-            topic: meetingTopic.value
-            })
-            await new Promise(resolve => setTimeout(resolve, 1500))
+            const payload = {
+                availabilitySlotId: props.slot.id,
+                topic: meetingTopic.value,
+                ...(description.value && { description: description.value })
+            };
+
+            const res = await createBooking(payload);
+            console.log('Booking created:', res.data);
             
             // On success
             emit("submitted")
             alert('Your booking request has been sent!')
 
         } catch (error) {
-            console.error('Failed to submit booking:', error)
+            console.error('Failed to submit booking: ', error)
             alert('There was an error submitting your request. Please try again.')
         } finally {
             isSubmitting.value = false
