@@ -126,7 +126,8 @@ export default {
         { id: 'pending', label: 'Pending' },
         { id: 'accepted', label: 'Accepted' },
         { id: 'rejected', label: 'Rejected' },
-        { id: 'completed', label: 'Completed' }
+        { id: 'completed', label: 'Completed' },
+        { id: 'published', label: 'Published' }
       ],
       bookings: [
         {
@@ -146,7 +147,7 @@ export default {
         {
           id: 3,
           status: 'Pending',
-          time: 'Mon 26 Aug, 09:00 AEST • Online',
+          time: 'Mon 26 Aug, 09:00 AEST • Southbank',
           mentee: 'Charlie Chen',
           menteeAvatar: '/default-avatar.jpg'
         },
@@ -167,8 +168,15 @@ export default {
         {
           id: 6,
           status: 'Accepted',
-          time: 'Thu 29 Aug, 16:00 AEST • Online',
+          time: 'Thu 29 Aug, 16:00 AEST • Carlton',
           mentee: 'Frank Wilson',
+          menteeAvatar: '/default-avatar.jpg'
+        },
+        {
+          id: 7,
+          status: 'Published',
+          time: 'Fri 30 Aug, 18:00 AEST • North Melbourne',
+          mentee: 'N/A',
           menteeAvatar: '/default-avatar.jpg'
         }
       ]
@@ -176,12 +184,17 @@ export default {
   },
   computed: {
     filteredBookings() {
-      if (this.activeFilter === 'all') {
+      if (this.activeFilter === 'published') {
         return this.bookings
+      } else if (this.activeFilter === 'all') {
+        return this.bookings.filter(booking =>
+          booking.status.toLowerCase() !== 'published'
+          )
+      } else {
+        return this.bookings.filter(booking => 
+          booking.status.toLowerCase() === this.activeFilter
+        )
       }
-      return this.bookings.filter(booking => 
-        booking.status.toLowerCase() === this.activeFilter
-      )
     }
   },
   methods: {
@@ -428,6 +441,10 @@ export default {
 .status-badge.cancelled {
   background-color: #f8d7da;
   color: #721c24;
+}
+.status-badge.published {
+  background-color: #cccccc;
+  color: #575757;
 }
 
 .booking-details {
