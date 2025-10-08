@@ -109,6 +109,7 @@
 
 <script>
 import CreateMeetingModal from './CreateMeetingModal.vue'
+import { getMentorBookings } from '@/services/booking';
 
 export default {
   name: 'MentorsBookingsContent',
@@ -129,57 +130,7 @@ export default {
         { id: 'completed', label: 'Completed' },
         { id: 'published', label: 'Published' }
       ],
-      bookings: [
-        {
-          id: 1,
-          status: 'Accepted',
-          time: 'Thu 22 Aug, 10:30 AEST • Carlton',
-          mentee: 'Alice Wang',
-          menteeAvatar: '/default-avatar.jpg'
-        },
-        {
-          id: 2,
-          status: 'Pending',
-          time: 'Fri 23 Aug, 14:00 AEST • Parkville',
-          mentee: 'Bob Lee',
-          menteeAvatar: '/default-avatar.jpg'
-        },
-        {
-          id: 3,
-          status: 'Pending',
-          time: 'Mon 26 Aug, 09:00 AEST • Southbank',
-          mentee: 'Charlie Chen',
-          menteeAvatar: '/default-avatar.jpg'
-        },
-        {
-          id: 4,
-          status: 'Rejected',
-          time: 'Tue 27 Aug, 15:30 AEST • Carlton',
-          mentee: 'Diana Smith',
-          menteeAvatar: '/default-avatar.jpg'
-        },
-        {
-          id: 5,
-          status: 'Completed',
-          time: 'Wed 21 Aug, 11:00 AEST • Parkville',
-          mentee: 'Emma Johnson',
-          menteeAvatar: '/default-avatar.jpg'
-        },
-        {
-          id: 6,
-          status: 'Accepted',
-          time: 'Thu 29 Aug, 16:00 AEST • Carlton',
-          mentee: 'Frank Wilson',
-          menteeAvatar: '/default-avatar.jpg'
-        },
-        {
-          id: 7,
-          status: 'Published',
-          time: 'Fri 30 Aug, 18:00 AEST • North Melbourne',
-          mentee: 'N/A',
-          menteeAvatar: '/default-avatar.jpg'
-        }
-      ]
+      bookings: []
     }
   },
   computed: {
@@ -198,6 +149,40 @@ export default {
     }
   },
   methods: {
+    async fetchBookings() {
+      this.isLoading = true
+      this.errorMessage = ''
+      try {
+        const res = await getMentorBookings()
+        this.bookings = res.data.map(b => ({
+          id: b.id,
+          status: b.status.charAt(0).toUpperCase() + b.status.slice(1), // capitalize
+          time: this.formatSlotTime(b.slot),
+          mentee: b.counterpart?.fullName || 'Unknown mentee',
+          menteeAvatar: b.counterpart?.profileImageUrl || '/default-avatar.jpg'
+        }))
+      } catch (err) {
+        console.error('Failed to fetch bookings:', err)
+        this.errorMessage = 'Failed to load your bookings.'
+      } finally {
+        this.isLoading = false
+      }
+    },
+
+    formatSlotTime(slot) {
+      if (!slot) return 'No slot info'
+      const start = new Date(slot.startTime)
+      const options = {
+        weekday: 'short',
+        day: '2-digit',
+        month: 'short',
+        hour: '2-digit',
+        minute: '2-digit',
+        timeZoneName: 'short'
+      }
+      return `${start.toLocaleString('en-AU', options)} • ${slot.location || ''}`
+    },
+
     setActiveFilter(filterId) {
       this.activeFilter = filterId
     },
@@ -245,6 +230,10 @@ export default {
       // This would typically make an API call to reject the booking
       booking.status = 'Rejected'
     }
+  },
+
+  mounted() {
+    this.fetchBookings()
   }
 }
 </script>
