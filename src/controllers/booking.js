@@ -128,6 +128,93 @@ exports.respondToBooking = async (req, res) => {
   }
 };
 
+exports.getUserBookings = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { role } = req.query;
+
+    if (!role || !['mentee', 'mentor'].includes(role)) {
+      return res.status(400).json({
+        error: "Invalid or missing 'role'."
+      });
+    }
+
+    // Dynamic filter depending on role
+    const whereCondition =
+      role === 'mentee' ? { menteeId: userId } : { mentorId: userId };
+
+    const bookings = await prisma.booking.findMany({
+      where: whereCondition,
+      include: {
+        availabilitySlot: true,
+        mentor: {
+          select: {
+            id: true,
+            email: true,
+            profile: {
+              select: {
+                fullName: true,
+                profileImageUrl: true
+              }
+            }
+          }
+        },
+        mentee: {
+          select: {
+            id: true,
+            email: true,
+            profile: {
+              select: {
+                fullName: true,
+                profileImageUrl: true
+              }
+            }
+          }
+        }
+      },
+      orderBy: {
+        createdAt: 'desc'
+      }
+    });
+
+    if (bookings.length === 0) {
+      return res.status(404).json({ message: "No bookings found" });
+    }
+
+    // Format the response
+    const formatted = bookings.map(b => ({
+      id: b.id,
+      topic: b.topic,
+      description: b.description,
+      note: b.note,
+      numParticipants: b.numParticipants,
+      status: b.status,
+      createdAt: b.createdAt,
+      updatedAt: b.updatedAt,
+      slot: b.availabilitySlot,
+      counterpart:
+        role === 'mentee'
+          ? {
+              id: b.mentor.id,
+              fullName: b.mentor.profile?.fullName,
+              profileImageUrl: b.mentor.profile?.profileImageUrl,
+              email: b.mentor.email
+            }
+          : {
+              id: b.mentee.id,
+              fullName: b.mentee.profile?.fullName,
+              profileImageUrl: b.mentee.profile?.profileImageUrl,
+              email: b.mentee.email
+            }
+    }));
+
+    res.json(formatted);
+  } catch (err) {
+    console.error('Error fetching bookings:', err);
+    res.status(500).json({ error: 'Failed to fetch bookings' });
+  }
+};
+
 // Get booking history for a user
 exports.getBookingHistory = async (req, res) => {
   try {
