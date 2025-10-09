@@ -122,6 +122,8 @@
 </template>
 
 <script>
+import { mentorSearch } from '@/services/mentor';
+
 export default {
   name: 'MenteeDashboardContent',
   data() {
@@ -155,98 +157,9 @@ export default {
         { id: 'academic-writing', name: 'Academic Writing' },
         { id: 'computer-science', name: 'Computer Science' }
       ],
-      mentors: [
-        {
-          id: 1,
-          name: 'Dr. Sarah Chen',
-          title: 'Senior AI Researcher',
-          company: 'Google DeepMind',
-          avatar: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMjAiIGN5PSIyMCIgcj0iMjAiIGZpbGw9IiM0RjQ2RTUiLz4KPHRleHQgeD0iMjAiIHk9IjI2IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSJ3aGl0ZSIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjE0IiBmb250LXdlaWdodD0iYm9sZCI+U0M8L3RleHQ+Cjwvc3ZnPgo=',
-          tags: ['AI', 'Machine Learning', 'Computer Vision'],
-          city: 'sydney',
-          major: 'ai-ml',
-          availableSlots: {
-            '2024-12-20': ['09:00', '10:00', '14:00', '15:00'],
-            '2024-12-21': ['11:00', '13:00', '16:00', '17:00'],
-            '2024-12-22': ['09:00', '12:00', '15:00', '16:00']
-          }
-        },
-        {
-          id: 2,
-          name: 'Prof. Michael Rodriguez',
-          title: 'Data Science Professor',
-          company: 'Stanford University',
-          avatar: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMjAiIGN5PSIyMCIgcj0iMjAiIGZpbGw9IiMwNTk2NjkiLz4KPHRleHQgeD0iMjAiIHk9IjI2IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSJ3aGl0ZSIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjE0IiBmb250LXdlaWdodD0iYm9sZCI+TVI8L3RleHQ+Cjwvc3ZnPgo=',
-          tags: ['Data Science', 'Machine Learning', 'Academic Writing'],
-          city: 'melbourne',
-          major: 'data-science',
-          availableSlots: {
-            '2024-12-20': ['13:00', '14:00', '16:00'],
-            '2024-12-21': ['09:00', '10:00', '15:00', '17:00'],
-            '2024-12-23': ['11:00', '12:00', '16:00', '17:00']
-          }
-        },
-        {
-          id: 3,
-          name: 'Dr. Emily Watson',
-          title: 'Computer Vision Engineer',
-          company: 'Tesla',
-          avatar: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMjAiIGN5PSIyMCIgcj0iMjAiIGZpbGw9IiNEQzI2MjYiLz4KPHRleHQgeD0iMjAiIHk9IjI2IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSJ3aGl0ZSIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjE0IiBmb250LXdlaWdodD0iYm9sZCI+RVc8L3RleHQ+Cjwvc3ZnPgo=',
-          tags: ['Computer Vision', 'AI', 'Thesis Guidance'],
-          city: 'brisbane',
-          major: 'ai-ml',
-          availableSlots: {
-            '2024-12-20': ['10:00', '11:00', '15:00', '16:00'],
-            '2024-12-22': ['09:00', '13:00', '14:00', '16:00'],
-            '2024-12-24': ['12:00', '15:00', '17:00']
-          }
-        },
-        {
-          id: 4,
-          name: 'James Liu',
-          title: 'Senior Software Engineer',
-          company: 'Microsoft',
-          avatar: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMjAiIGN5PSIyMCIgcj0iMjAiIGZpbGw9IiM3QzNBRUQiLz4KPHRleHQgeD0iMjAiIHk9IjI2IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSJ3aGl0ZSIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjE0IiBmb250LXdlaWdodD0iYm9sZCI+Skw8L3RleHQ+Cjwvc3ZnPgo=',
-          tags: ['Computer Science', 'AI', 'Academic Writing'],
-          city: 'perth',
-          major: 'computer-science',
-          availableSlots: {
-            '2024-12-21': ['14:00', '15:00', '16:00', '17:00'],
-            '2024-12-22': ['10:00', '11:00', '17:00'],
-            '2024-12-23': ['09:00', '13:00', '15:00', '16:00']
-          }
-        },
-        {
-          id: 5,
-          name: 'Dr. Anna Kowalski',
-          title: 'Creative Director',
-          company: 'Pixar Animation Studios',
-          avatar: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMjAiIGN5PSIyMCIgcj0iMjAiIGZpbGw9IiNFQTU4MEMiLz4KPHRleHQgeD0iMjAiIHk9IjI2IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSJ3aGl0ZSIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjE0IiBmb250LXdlaWdodD0iYm9sZCI+QUs8L3RleHQ+Cjwvc3ZnPgo=',
-          tags: ['Art', 'Computer Vision', 'Thesis Guidance'],
-          city: 'adelaide',
-          major: 'art',
-          availableSlots: {
-            '2024-12-20': ['12:00', '13:00', '17:00'],
-            '2024-12-21': ['11:00', '12:00', '15:00', '16:00'],
-            '2024-12-23': ['14:00', '15:00', '16:00']
-          }
-        },
-        {
-          id: 6,
-          name: 'Dr. Robert Kim',
-          title: 'Machine Learning Scientist',
-          company: 'OpenAI',
-          avatar: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMjAiIGN5PSIyMCIgcj0iMjAiIGZpbGw9IiMwODkxQjIiLz4KPHRleHQgeD0iMjAiIHk9IjI2IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSJ3aGl0ZSIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjE0IiBmb250LXdlaWdodD0iYm9sZCI+Uko8L3RleHQ+Cjwvc3ZnPgo=',
-          tags: ['Machine Learning', 'AI', 'Data Science'],
-          city: 'sydney',
-          major: 'ai-ml',
-          availableSlots: {
-            '2024-12-20': ['09:00', '11:00', '16:00', '17:00'],
-            '2024-12-21': ['10:00', '14:00', '17:00'],
-            '2024-12-22': ['12:00', '15:00', '16:00', '17:00']
-          }
-        }
-      ]
+      mentors: [],
+      isLoading: false,
+      errorMessage: ''
     }
   },
   computed: {
@@ -314,6 +227,27 @@ export default {
     }
   },
   methods: {
+    async fetchMentors() {
+      this.isLoading = true;
+      this.errorMessage = '';
+      try {
+        const res = await mentorSearch({ maxResults: 6 });
+        this.mentors = res.data.map(m => ({
+          id: m.id,
+          name: m.fullName || 'Unnamed Mentor',
+          avatar: m.profileImageUrl || '/default-avatar.jpg',
+          title: m.position || 'Mentor',
+          company: m.company || '—',
+          tags: m.skill || []
+        }));
+      } catch (err) {
+        console.error('Error fetching mentors:', err);
+        this.errorMessage = 'Failed to load mentors.';
+      } finally {
+        this.isLoading = false;
+      }
+    },
+
     toggleTag(tagId) {
       const index = this.selectedTags.indexOf(tagId)
       if (index > -1) {
@@ -351,6 +285,9 @@ export default {
       this.selectedDate = ''
       this.selectedTime = ''
     }
+  },
+  mounted() {
+    this.fetchMentors();
   }
 }
 </script>

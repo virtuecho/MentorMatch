@@ -10,11 +10,11 @@ export const createBooking = ({
 }
 
 export const cancelBooking = ({ bookingId }) => {
-    API.post("/booking/cancel", { bookingId});
+    API.post("/booking/cancel", { bookingId });
 }
 
 export const respondToBooking = ({ bookingId, response }) => {
-    return API.patch("/booking/${bookingId}/respond", { response });
+    return API.patch(`/booking/${bookingId}/respond`, { response });
 }
 
 export const getMentorBookings = () => {

@@ -109,7 +109,7 @@
 
 <script>
 import CreateMeetingModal from './CreateMeetingModal.vue'
-import { getMentorBookings } from '@/services/booking';
+import { getMentorBookings, respondToBooking } from '@/services/booking';
 
 export default {
   name: 'MentorsBookingsContent',
@@ -122,6 +122,8 @@ export default {
       showCancelModal: false,
       showCreateModal: false,
       bookingToCancel: null,
+      isLoading: false,
+      errorMessage: '',
       filterTabs: [
         { id: 'all', label: 'All' },
         { id: 'pending', label: 'Pending' },
@@ -218,17 +220,25 @@ export default {
         this.closeCancelModal()
       }
     },
-    acceptBooking(booking) {
-      // TODO: Implement accept booking functionality
-      console.log('Accepting booking:', booking)
-      // This would typically make an API call to accept the booking
-      booking.status = 'Accepted'
+    async acceptBooking(booking) {
+      try {
+        const res = await respondToBooking({ bookingId: booking.id, response: 'accepted' })
+        booking.status = 'Accepted'
+        console.log('Booking accepted:', res.data)
+      } catch (err) {
+        console.error('Failed to accept booking:', err)
+        alert('Something went wrong while accepting the booking.')
+      }
     },
-    rejectBooking(booking) {
-      // TODO: Implement reject booking functionality
-      console.log('Rejecting booking:', booking)
-      // This would typically make an API call to reject the booking
-      booking.status = 'Rejected'
+    async rejectBooking(booking) {
+      try {
+        const res = await respondToBooking({ bookingId: booking.id, response: 'rejected' })
+        booking.status = 'Rejected'
+        console.log('Booking rejected:', res.data)
+      } catch (err) {
+        console.error('Failed to reject booking:', err)
+        alert('Something went wrong while rejecting the booking.')
+      }
     }
   },
 
