@@ -5,4 +5,6 @@ const { authenticate } = require('../middleware/auth');
 
 router.get('/search', authenticate, mentorController.searchMentors);
 
+router.get('/:mentorId', authenticate, mentorController.getMentorProfile);
+
 module.exports = router;

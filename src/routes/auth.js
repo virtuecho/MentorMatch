@@ -8,6 +8,5 @@ router.post('/register', authController.register);
 router.post('/login', authController.login);
 router.get('/profile', authenticate, authController.getProfile)
 router.put('/profile', authenticate, authController.updateProfile);
-router.get('/mentor/:mentorId', authController.getMentorPublicProfile);
 
 module.exports = router;

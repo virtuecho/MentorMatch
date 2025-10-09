@@ -101,3 +101,35 @@ exports.searchMentors = async (req, res) => {
     res.status(500).json({ error: 'Failed to search mentors' });
   }
 };
+
+// Get public mentor profile accessible by anyone
+exports.getMentorProfile = async (req, res) => {
+  try {
+    const { mentorId } = req.params;
+    
+    const mentor = await prisma.user.findUnique({
+      where: { 
+        id: parseInt(mentorId),
+        isMentorApproved: true
+      },
+      include: {
+        profile: {
+          include: {
+            educations: true,
+            experience: true
+          }
+        },
+        availabilitySlots: true
+      }
+    });
+
+    if (!mentor) {
+      return res.status(404).json({ error: 'Mentor not found' });
+    }
+
+    return res.status(200).json(mentor);
+  } catch (err) {
+    console.error('Failed to fetch mentor profile: ', err);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+};
