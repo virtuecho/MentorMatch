@@ -4,10 +4,12 @@ const prisma = new PrismaClient();
 exports.searchMentors = async (req, res) => {
   try {
     const { skill, location, maxResults = 10 } = req.query;
+    const currentUserId = req.user.id;
 
     const mentors = await prisma.user.findMany({
       where: {
         isMentorApproved: true,
+        id: { not: currentUserId },
         availabilitySlots: {
           some: {} // ensures there is at least one slot
         },
