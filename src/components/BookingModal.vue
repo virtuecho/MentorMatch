@@ -54,12 +54,12 @@
 
     const props = defineProps({
         slot: { type: Object, required: true },
-        mentorName: { type: String, required: true }
+        mentorName: { type: String, required: false }
     })
     const emit = defineEmits(["close", "submitted"])
 
     const meetingTopic = ref("")
-    const description = ref("");
+    const meetingDescription = ref("");
     const isSubmitting = ref(false)
 
     function formatDate(dateString) {
@@ -102,7 +102,7 @@
             const payload = {
                 availabilitySlotId: props.slot.id,
                 topic: meetingTopic.value,
-                ...(description.value && { description: description.value })
+                ...(meetingDescription.value && { description: meetingDescription.value })
             };
 
             const res = await createBooking(payload);
