@@ -26,12 +26,12 @@ export const getMyAvailability = () => {
 }
 
 // Mentee view availability slots given mentor id
-export const getMentorAvailability = ({ mentorID }) => {
-    const res = API.get("/mentor/${mentorId}", { mentorID });
+export const getMentorAvailability = ({ mentorId }) => {
+    const res = API.get(`/mentor/${mentorId}`, { mentorId });
     return res.data;
 }
 
 // Delete your availability slot
 export const deleteAvailability = ({ slotId }) => {
-    API.delete("/slots/${slotId}", { slotId })
+    API.delete(`/slots/${slotId}`, { slotId })
 }

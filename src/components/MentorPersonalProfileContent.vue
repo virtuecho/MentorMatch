@@ -106,10 +106,10 @@
                     class="request-booking-btn"
                     :disabled="isRequestingBooking"
                   >
-                    {{ isRequestingBooking ? 'Requesting...' : 'Request Booking' }}
+                    {{ isRequestingBooking ? 'Requesting...' : 'Request' }}
                   </button>
                   <span v-else class="session-status booked">
-                    Already Booked
+                    Booked
                   </span>
                 </div>
               </div>
@@ -177,6 +177,7 @@
 
 <script>
 import BookingModal from '@/components/BookingModal.vue'
+import { getMentorProfile } from '@/services/mentor';
 
 export default {
   name: 'MentorPersonalProfileContent',
@@ -235,8 +236,6 @@ export default {
     async loadMentorProfile() {
       try {
         // TODO: Replace with actual API call
-        // const response = await getMentorProfile(this.mentorId);
-        // this.mentor = response.data;
         
         // Placeholder data for now
         this.mentor = {
@@ -268,63 +267,18 @@ export default {
     async loadAvailableSessions() {
       try {
         this.isLoadingSessions = true;
-        // TODO: Replace with actual API call to get mentor's available sessions
-        // const response = await getMentorAvailableSessions(this.mentorId);
-        // this.availableSessions = response.data;
         
-        // Mock data for demonstration
-        await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API delay
-        
-        let allSessions = [
-          {
-            id: 1,
-            startTime: '2025-11-15T09:00:00Z',
-            durationMins: 60,
-            city: 'Sydney',
-            address: 'Central Library, 123 George Street',
-            isBooked: false
-          },
-          {
-            id: 2,
-            startTime: '2025-11-18T14:00:00Z',
-            durationMins: 90,
-            city: 'Sydney',
-            address: 'Coffee Bean Cafe, 456 Pitt Street',
-            isBooked: false
-          },
-          {
-            id: 3,
-            startTime: '2025-12-20T10:00:00Z',
-            durationMins: 60,
-            city: 'Sydney',
-            address: 'University of Sydney, Building A',
-            isBooked: true
-          },
-          {
-            id: 4,
-            startTime: '2025-12-22T16:00:00Z',
-            durationMins: 120,
-            city: 'Melbourne',
-            address: 'State Library Victoria, 328 Swanston Street',
-            isBooked: true 
-          },
-          {
-            id: 5,
-            startTime: '2025-11-15T14:00:00Z',
-            durationMins: 60,
-            city: 'Melbourne',
-            address: '100 Collins Street, Melbourne CBD',
-            isBooked: false
-          },
-          {
-            id: 6,
-            startTime: '2025-11-18T09:00:00Z',
-            durationMins: 90,
-            city: 'Brisbane',
-            address: '200 Queen Street, Brisbane CBD',
-            isBooked: false
-          }
-        ];
+        let allSessions = [];
+        const res = await getMentorProfile({ mentorId: this.mentorId });
+        const slots = res.data.availabilitySlots || [];
+        allSessions = slots.map(slot => ({
+          id: slot.id,
+          startTime: slot.startTime,
+          durationMins: slot.durationMins,
+          city: slot.city ? slot.city.charAt(0).toUpperCase() + slot.city.slice(1).toLowerCase() : '',
+          address: slot.address || '',
+          isBooked: slot.isBooked || false
+        }));
         
         // Apply filters from dashboard
         if (this.filterDate) {
