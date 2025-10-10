@@ -1,3 +1,6 @@
+const { PrismaClient } = require('@prisma/client');
+const prisma = new PrismaClient();
+
 exports.checkRole = (requiredRole) => {
   return async (req, res, next) => {
     try {
