@@ -83,7 +83,6 @@ exports.getMentorAvailability = async (req, res) => {
     const mentor = await prisma.user.findUnique({
       where: { 
         id: parseInt(mentorId),
-        role: 'mentor',
         isMentorApproved: true
       }
     });
