@@ -82,7 +82,7 @@
 </template>
 
 <script>
-import { getMenteeBookings } from '@/services/booking';
+import { getMenteeBookings, cancelBooking } from '@/services/booking';
 
 export default {
   name: 'MyBookingsContent',
@@ -159,10 +159,17 @@ export default {
       this.showCancelModal = false
       this.bookingToCancel = null
     },
-    confirmCancelBooking() {
+    async confirmCancelBooking() {
       if (this.bookingToCancel) {
-        this.bookingToCancel.status = 'Cancelled'
-        this.closeCancelModal()
+        try {
+          await cancelBooking({ bookingId: this.bookingToCancel.id })
+          this.bookingToCancel.status = 'Cancelled'
+          console.log('Booking cancelled:', this.bookingToCancel)
+          this.closeCancelModal()
+        } catch (err) {
+          console.error('Failed to cancel booking:', err)
+          alert('Something went wrong while cancelling the booking.')
+        }
       }
     }
   },
