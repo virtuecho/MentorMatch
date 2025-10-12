@@ -28,7 +28,7 @@
               />
             </div>
             <div class="user-info">
-              <h2 class="user-name">{{ profile.fullName || 'John Doe' }}</h2>
+              <h2 class="user-name">{{ displayFullName }}</h2>
               <p class="user-location">{{ profile.location || 'Melbourne / AEST' }}</p>
             </div>
           </div>
@@ -44,7 +44,8 @@
                 type="text" 
                 v-model="profile.fullName"
                 class="form-input"
-                placeholder="John Doe"
+                :placeholder="displayFullName || 'Enter your full name'"
+                :disabled="!isEditMode"
               />
             </div>
           </div>
@@ -58,6 +59,7 @@
                 v-model="profile.location"
                 class="form-input"
                 placeholder="Melbourne / AEST"
+                :disabled="!isEditMode"
               />
             </div>
           </div>
@@ -73,6 +75,7 @@
                 class="form-textarea"
                 rows="4"
                 placeholder="Experience software engineer passionate about mentoring the next generation of tech talent. Skilled in web development."
+                :disabled="!isEditMode"
               ></textarea>
             </div>
           </div>
@@ -92,6 +95,7 @@
                   v-model="profile.phone"
                   class="form-input"
                   placeholder="000-000-0000"
+                  :disabled="!isEditMode"
                 />
               </div>
             </div>
@@ -105,6 +109,7 @@
                   v-model="profile.socialMedia"
                   class="form-input"
                   placeholder="@"
+                  :disabled="!isEditMode"
                 />
               </div>
             </div>
@@ -114,7 +119,7 @@
           <div class="education-section">
             <div class="section-header">
               <h3 class="section-title">Education</h3>
-              <div class="section-actions">
+              <div class="section-actions" v-if="isEditMode">
                 <button class="add-item-btn" @click="addEducation">
                   <svg class="plus-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M12 5v14m-7-7h14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -149,7 +154,8 @@
                     type="text" 
                     v-model="education.university"
                     class="form-input"
-                    placeholder="University of Melbourne"
+                    placeholder="University name"
+                    :disabled="!isEditMode"
                   />
                 </div>
                 <div class="form-field">
@@ -158,7 +164,8 @@
                     type="text" 
                     v-model="education.degree"
                     class="form-input"
-                    placeholder="Bachelor of Science, Computer Software System"
+                    placeholder="Degree and major"
+                    :disabled="!isEditMode"
                   />
                 </div>
                 <div class="form-field">
@@ -168,10 +175,11 @@
                     v-model="education.period"
                     class="form-input"
                     placeholder="Feb 2022 - Nov 2025"
+                    :disabled="!isEditMode"
                   />
                 </div>
 
-                <button class="remove-item-btn" @click="removeEducation(index)">
+                <button v-if="isEditMode" class="remove-item-btn" @click="removeEducation(index)">
                   Remove
                 </button>
               </div>
@@ -186,7 +194,7 @@
           <div class="experience-section">
             <div class="section-header">
               <h3 class="section-title">Experience</h3>
-              <div class="section-actions">
+              <div class="section-actions" v-if="isEditMode">
                 <button class="add-item-btn" @click="addExperience">
                   <svg class="plus-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M12 5v14m-7-7h14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -226,7 +234,8 @@
                     type="text" 
                     v-model="experience.company"
                     class="form-input"
-                    placeholder="Tech Solutions Inc."
+                    placeholder="Company name"
+                    :disabled="!isEditMode"
                   />
                 </div>
                 <div class="form-field">
@@ -235,7 +244,8 @@
                     type="text" 
                     v-model="experience.position"
                     class="form-input"
-                    placeholder="Software Engineer"
+                    placeholder="Job title"
+                    :disabled="!isEditMode"
                   />
                 </div>
                 <div class="form-field">
@@ -245,19 +255,21 @@
                     v-model="experience.period"
                     class="form-input"
                     placeholder="Jan 2023 - Present"
+                    :disabled="!isEditMode"
                   />
                 </div>
                 <div class="form-field">
-                  <label class="field-label">Skills (comma separated)</label>
+                  <label class="field-label">Skills</label>
                   <input 
                     type="text" 
                     v-model="experience.skillsString"
                     @input="updateExperienceSkills(index, experience.skillsString)"
                     class="form-input"
                     placeholder="JavaScript, React, Node.js"
+                    :disabled="!isEditMode"
                   />
                 </div>
-                <button class="remove-item-btn" @click="removeExperience(index)">
+                <button v-if="isEditMode" class="remove-item-btn" @click="removeExperience(index)">
                   Remove
                 </button>
               </div>
@@ -270,12 +282,17 @@
           
           <!-- Action Buttons -->
           <div class="button-group">
-            <button class="cancel-btn" @click="cancelChanges">
-              Cancel
+            <button v-if="!isEditMode" class="edit-btn" @click="enableEditMode">
+              Edit My Profile
             </button>
-            <button class="save-btn" @click="saveProfile">
-              Save Changes
-            </button>
+            <template v-else>
+              <button class="cancel-btn" @click="confirmCancelChanges">
+                Cancel
+              </button>
+              <button class="save-btn" @click="saveProfile">
+                Save Changes
+              </button>
+            </template>
           </div>
         </div>
       </div>
@@ -284,12 +301,15 @@
 </template>
 
 <script>
+import { getProfile } from '@/services/auth'
+
 export default {
   name: 'ProfileContent',
   data() {
     return {
+      isEditMode: false,
       profile: {
-        fullName: 'John Doe',
+        fullName: '',
         location: 'Melbourne / AEST',
         phone: '000-000-0000',
         socialMedia: '@',
@@ -316,14 +336,67 @@ export default {
       },
       originalProfile: {},
       isEditingEducation: false,
-      isEditingExperience: false
+      isEditingExperience: false,
+      userEmail: ''
     }
   },
-  mounted() {
+  async mounted() {
+    await this.loadUserProfile()
     // Store original values for cancel functionality
-    this.originalProfile = { ...this.profile }
+    this.originalProfile = JSON.parse(JSON.stringify(this.profile))
+  },
+  computed: {
+    displayFullName() {
+      const name = (this.profile && this.profile.fullName) ? this.profile.fullName.trim() : ''
+      if (name) return name
+      if (this.userEmail) {
+        const prefix = this.userEmail.split('@')[0]
+        return prefix
+      }
+      return ''
+    }
   },
   methods: {
+    async loadUserProfile() {
+      try {
+        // Try to get user profile from API
+        const response = await getProfile()
+        const userData = response.data
+        
+        this.userEmail = userData.email
+        
+        // Extract username from email (part before @)
+        const emailPrefix = userData.email.split('@')[0]
+        
+        // Set fullName to email prefix if no fullName exists in profile
+        if (userData.profile && userData.profile.fullName) {
+          this.profile.fullName = userData.profile.fullName
+        } else {
+          this.profile.fullName = emailPrefix
+        }
+        
+        // Load other profile data if available
+        if (userData.profile) {
+          this.profile.location = userData.profile.location || this.profile.location
+          this.profile.phone = userData.profile.phone || this.profile.phone
+          this.profile.socialMedia = userData.profile.socialMedia || this.profile.socialMedia
+          this.profile.bio = userData.profile.bio || this.profile.bio
+          this.profile.avatar = userData.profile.profileImageUrl || this.profile.avatar
+        }
+        
+      } catch (error) {
+        console.error('Failed to load user profile:', error)
+        // Fallback: try to get email from route query or localStorage
+        const routeEmail = this.$route && this.$route.query ? this.$route.query.email : null
+        if (routeEmail) {
+          this.userEmail = routeEmail
+          this.profile.fullName = routeEmail.split('@')[0]
+        } else {
+          // Keep default values
+          this.profile.fullName = 'John Doe'
+        }
+      }
+    },
     handleAvatarUpload(event) {
       const file = event.target.files[0]
       if (file) {
@@ -371,19 +444,52 @@ export default {
       this.profile.experience[index].skills = skills
       this.profile.experience[index].skillsString = skillsString
     },
-    saveProfile() {
+    enableEditMode() {
+      this.isEditMode = true
+      // Store current profile state for potential cancellation
+      this.originalProfile = JSON.parse(JSON.stringify(this.profile))
+    },
+    confirmCancelChanges() {
+      if (confirm('Are you sure you want to cancel all changes? Any unsaved modifications will be lost.')) {
+        this.cancelChanges()
+      }
+    },
+    async saveProfile() {
       console.log('Saving profile:', this.profile)
-      // Here you would typically make an API call to save the profile
-      this.originalProfile = { ...this.profile }
-      this.isEditingEducation = false
-      this.isEditingExperience = false
-      // Show success message
-      alert('Profile saved successfully!')
+      
+      try {
+        // Prepare payload for API
+        const payload = {
+          fullName: this.profile.fullName,
+          location: this.profile.location,
+          phone: this.profile.phone,
+          socialMedia: this.profile.socialMedia,
+          bio: this.profile.bio,
+          profileImageUrl: this.profile.avatar
+        }
+        
+        // TODO: Call updateProfile API
+        // await updateProfile(payload)
+        
+        // Update original profile after successful save
+        this.originalProfile = JSON.parse(JSON.stringify(this.profile))
+        this.isEditingEducation = false
+        this.isEditingExperience = false
+        this.isEditMode = false
+        
+        // Show success message
+        alert('Profile saved successfully!')
+        
+      } catch (error) {
+        console.error('Failed to save profile:', error)
+        alert('Failed to save profile. Please try again.')
+      }
     },
     cancelChanges() {
-      this.profile = { ...this.originalProfile }
+      this.profile = JSON.parse(JSON.stringify(this.originalProfile))
       this.isEditingEducation = false
       this.isEditingExperience = false
+      this.isEditMode = false
       console.log('Changes cancelled')
     }
   }
@@ -943,6 +1049,30 @@ export default {
 .cancel-btn:active {
   background: #f3f4f6;
   transform: translateY(0);
+}
+
+.edit-btn {
+  background: #3b82f6;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  font-size: 14px;
+}
+
+.edit-btn:hover {
+  background: #2563eb;
+}
+
+.form-input:disabled,
+.form-textarea:disabled {
+  background-color: #f9fafb;
+  color: #6b7280;
+  cursor: not-allowed;
+  border-color: #e5e7eb;
 }
 
 /* Responsive Design */
