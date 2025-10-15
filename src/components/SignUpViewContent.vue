@@ -3,7 +3,7 @@
     <div class="signup-container">
       <div class="signup-form-wrapper">
         <div class="signup-header">
-          <h1 class="signup-title">Sign up to ConnectUp</h1>
+          <h1 class="signup-title">Sign up to MentorMatch</h1>
         </div>
         
         <form class="signup-form" @submit.prevent="handleSignUp">

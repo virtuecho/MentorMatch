@@ -66,19 +66,14 @@
           <!-- City -->
           <div class="form-group">
             <label for="city" class="form-label">City *</label>
-            <select
+            <input
               id="city"
               v-model="formData.city"
-              class="form-select"
+              type="text"
+              class="form-input"
+              placeholder="Enter city name"
               required
-            >
-              <option value="">Select city</option>
-              <option value="sydney">Sydney</option>
-              <option value="melbourne">Melbourne</option>
-              <option value="brisbane">Brisbane</option>
-              <option value="perth">Perth</option>
-              <option value="adelaide">Adelaide</option>
-            </select>
+            />
           </div>
 
           <!-- Address -->
