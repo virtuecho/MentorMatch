@@ -32,15 +32,8 @@
             </div>
           </div>
 
-          <!-- Book a Session Button -->
-          <div class="book-session-container">
-            <button class="book-session-btn" @click="showAvailableSessions">
-              Book a Session
-            </button>
-          </div>
-
           <!-- Available Sessions Section -->
-        <div v-if="showSessions" class="available-sessions-section">
+        <div class="available-sessions-section">
           <h3 class="sessions-title">Available Sessions</h3>
           
           <!-- Filter Info -->
@@ -224,7 +217,7 @@ export default {
       availableSessions: [],
       isLoadingSessions: true,
       isRequestingBooking: false,
-      showSessions: false,
+      showSessions: true,
       showBooking: false,
       selectedSlot: null
     }
@@ -258,12 +251,6 @@ export default {
     },
     goBack() {
       this.$router.go(-1);
-    },
-    async showAvailableSessions() {
-      this.showSessions = true;
-      if (this.availableSessions.length === 0) {
-        await this.loadAvailableSessions();
-      }
     },
     async loadAvailableSessions() {
       try {
