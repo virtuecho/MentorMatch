@@ -85,7 +85,7 @@
 </template>
 
 <script>
-import { getProfile } from '@/services/auth';
+import { getProfile } from '@/services/auth'; 
 import { updateRole } from '@/services/role';
 
 export default {
@@ -106,7 +106,7 @@ export default {
     this.userEmail = query.email;
     this.isEligibleMentor = query.isMentorApproved === 'true';
     this.serverRole = role;
-    this.mentorModeEnabled = role === 'mentor'
+    this.mentorModeEnabled = role === 'mentor';
   },
 
   methods: {
@@ -158,17 +158,60 @@ export default {
         if (isOnBookings && this.$route.path !== targetRoute) {
           this.$router.push(targetRoute);
         }
-
-        console.log(`Role updated to ${updatedRole}`);
-      } catch (err) {
-        console.error('Failed to toggle role:', err.response?.data || err.message);
-        this.mentorModeEnabled = this.serverRole === 'mentor';
+      } catch (error) {
+        console.error('Failed to toggle mentor mode:', error);
       } finally {
         this.isToggling = false;
       }
     },
     goToMentorVerification() {
       this.$router.push('/mentor-verification');
+    }
+  },
+  async mounted() {
+    try {
+      const profile = await getProfile();
+      this.userEmail = profile.data.email;
+
+      // infer mentor eligibility: allow if backend says role === 'mentor' OR has a hypothetical verified flag
+      // since API schema unknown, fallback to role === 'mentor' existing behavior
+      this.isEligibleMentor = !!(profile.data.isMentorVerified || profile.data.canBeMentor || profile.data.role === 'mentor');
+      
+      // Temporary Test: Mandatory Activation of Mentorship Qualification!!
+      this.isEligibleMentor = false;
+
+      // Set toggle based on current localStorage role (preserve user's current state)
+      const currentRole = localStorage.getItem('userRole') || 'mentee';
+      this.mentorModeEnabled = currentRole === 'mentor';
+      
+      // Only sync if there's no existing role in localStorage
+      if (!localStorage.getItem('userRole')) {
+        this.mentorModeEnabled = profile.data.role === 'mentor';
+        localStorage.setItem('userRole', this.mentorModeEnabled ? 'mentor' : 'mentee');
+        window.dispatchEvent(new CustomEvent('userRoleChanged', { detail: this.mentorModeEnabled ? 'mentor' : 'mentee' }));
+      }
+    } catch (err) {
+      console.error("Failed to fetch profile:", err.response?.data || err.message);
+    }
+  },
+  watch: {
+    async mentorModeEnabled(newValue, oldValue) {
+      if (!this.isEligibleMentor && newValue === true) {
+        // guard: revert and show hint
+        this.$nextTick(() => {
+          this.mentorModeEnabled = false;
+        });
+        return;
+      }
+
+      // If currently on any bookings route, route to the correct one based on mode
+      const isOnBookings = this.$route.path === '/my-bookings' || this.$route.path === '/mentors-bookings';
+      if (isOnBookings) {
+        const target = newValue ? '/mentors-bookings' : '/my-bookings';
+        if (this.$route.path !== target) {
+          this.$router.push(target);
+        }
+      }
     }
   }
 };
