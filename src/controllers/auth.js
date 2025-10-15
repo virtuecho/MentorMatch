@@ -1,7 +1,6 @@
 const jwt = require('jsonwebtoken')
 const bcrypt = require('bcrypt');
 const { PrismaClient } = require('@prisma/client');
-const { connect } = require('../app');
 const prisma = new PrismaClient();
 
 exports.register = async (req, res) => {
@@ -107,7 +106,6 @@ exports.getProfile = async (req, res) => {
   }
 };
 
-// Get public mentor profile accessible by anyone
 exports.getMentorPublicProfile = async (req, res) => {
   try {
     const { mentorId } = req.params;
@@ -212,7 +210,6 @@ exports.updateProfile = async (req, res) => {
   }
 };
 
-
 // Helpers for updating profile
 async function updateEducations(userId, educations) {
   for (const edu of educations) {
@@ -228,8 +225,8 @@ async function updateEducations(userId, educations) {
           userProfile: {
             connect: {
                 userId: userId
-			}
-		  }
+      }
+    }
         }
       });
     } else if (action === 'edit' && id) {

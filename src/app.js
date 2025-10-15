@@ -8,8 +8,13 @@ const availabilityRoutes = require('./routes/availability');
 const bookingRoutes = require('./routes/booking');
 
 const errorHandler = require('./middleware/error');
+const cors = require('cors');
+const { corsOptions } = require('./config/cors');
 
 const app = express();
+
+// CORS
+app.use(cors(corsOptions));
 
 // Middleware
 app.use(bodyParser.json());
