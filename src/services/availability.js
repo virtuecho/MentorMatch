@@ -21,17 +21,15 @@ export const createAvailability = ({
 
 // User view their own availability slots
 export const getMyAvailability = () => {
-    const res = API.get("/availability/slots");
-    return res.data;
+    return API.get("/availability/slots");
 }
 
 // Mentee view availability slots given mentor id
 export const getMentorAvailability = ({ mentorId }) => {
-    const res = API.get(`/mentor/${mentorId}`, { mentorId });
-    return res.data;
+    return API.get(`/availability/mentor/${mentorId}`);
 }
 
 // Delete your availability slot
 export const deleteAvailability = ({ slotId }) => {
-    API.delete(`/slots/${slotId}`, { slotId })
+    API.delete(`/availability/slots/${slotId}`, { slotId })
 }

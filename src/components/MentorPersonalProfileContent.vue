@@ -178,6 +178,7 @@
 <script>
 import BookingModal from '@/components/BookingModal.vue'
 import { getMentorProfile } from '@/services/mentor';
+import { getMentorAvailability } from '@/services/availability';
 
 export default {
   name: 'MentorPersonalProfileContent',
@@ -235,17 +236,17 @@ export default {
   methods: {
     async loadMentorProfile() {
       try {
-        // TODO: Replace with actual API call
-        
-        // Placeholder data for now
+        const res = await getMentorProfile({ mentorId: this.mentorId });
+        const info = res.data;
+
         this.mentor = {
-          fullName: 'Dr. Sarah Johnson',
+          fullName: info.profile?.fullName || info.email,
           professionalTitle: 'Senior Software Engineer',
           company: 'Google Australia',
-          location: 'Sydney, Australia',
-          bio: 'Experienced software engineer with 8+ years in the tech industry. Passionate about mentoring junior developers and helping them navigate their career paths. Specialized in full-stack development, cloud architecture, and team leadership.',
-          avatar: '/default-avatar.svg',
-          skills: ['JavaScript', 'React', 'Node.js', 'Python', 'AWS', 'Team Leadership'],
+          location: info.profile?.location || '',
+          bio: info.profile?.bio || 'This user hasn\'t added anything to their bio.',
+          avatar: info.profile?.profileImageUrl || '/default-avatar.svg',
+          skills: ['JavaScript', 'React', 'Node.js', 'Python', 'AWS', 'Leadership'],
           experience: '8+ years',
           degree: 'PhD in Computer Science',
           university: 'University of Sydney',
@@ -269,8 +270,8 @@ export default {
         this.isLoadingSessions = true;
         
         let allSessions = [];
-        const res = await getMentorProfile({ mentorId: this.mentorId });
-        const slots = res.data.availabilitySlots || [];
+        const res = await getMentorAvailability({ mentorId: this.mentorId });
+        const slots = res.data || [];
         allSessions = slots.map(slot => ({
           id: slot.id,
           startTime: slot.startTime,
