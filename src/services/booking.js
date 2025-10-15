@@ -10,7 +10,7 @@ export const createBooking = ({
 }
 
 export const cancelBooking = ({ bookingId }) => {
-    API.post("/booking/cancel", { bookingId });
+    return API.post("/booking/cancel", { bookingId });
 }
 
 export const respondToBooking = ({ bookingId, response }) => {

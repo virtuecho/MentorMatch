@@ -118,7 +118,7 @@ export default {
       // Handle sign up logic here
       try {
         const res = await register(
-          this.formData.fullName || undefined,
+          this.formData.name || undefined,
           this.formData.email,
           this.formData.password,
           undefined  // Role will be set to 'mentee' by backend default
