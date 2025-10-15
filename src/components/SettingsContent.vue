@@ -39,7 +39,7 @@
                 Enable to manage and publish your sessions as a mentor. <br>
                 Disable to view and book mentors as a mentee.
               </p>
-              <p v-if="!isEligibleMentor" class="eligibility-hint">Your account is not verified as a mentor yet. Please complete mentor verification to enable this.</p>
+              <p v-if="false && !isEligibleMentor" class="eligibility-hint">Your account is not verified as a mentor yet. Please complete mentor verification to enable this.</p>
               
               <!-- Mentor Verification Hint -->
               <div class="mentor-verification-hint" v-if="false">
@@ -58,10 +58,9 @@
                   type="checkbox" 
                   v-model="mentorModeEnabled"
                   class="switch-input"
-                  :disabled="!isEligibleMentor"
                   @change="onToggleMentorMode"
                 />
-                <span class="switch-slider" :class="{ disabled: !isEligibleMentor }"></span>
+                <span class="switch-slider"></span>
               </label>
             </div>
           </div>
@@ -131,10 +130,10 @@ export default {
       const desiredMentor = !!this.mentorModeEnabled;
       const desiredRole = desiredMentor ? 'mentor' : 'mentee';
 
-      if (desiredMentor && !this.isEligibleMentor) {
-        this.$nextTick(() => { this.mentorModeEnabled = false; });
-        return;
-      }
+      // if (desiredMentor && !this.isEligibleMentor) {
+      //   this.$nextTick(() => { this.mentorModeEnabled = false; });
+      //   return;
+      // }
 
       if (this.serverRole === desiredRole) return;
 
@@ -175,10 +174,9 @@ export default {
 
       // infer mentor eligibility: allow if backend says role === 'mentor' OR has a hypothetical verified flag
       // since API schema unknown, fallback to role === 'mentor' existing behavior
-      this.isEligibleMentor = !!(profile.data.isMentorVerified || profile.data.canBeMentor || profile.data.role === 'mentor');
+      // this.isEligibleMentor = !!(profile.data.isMentorVerified || profile.data.canBeMentor || profile.data.role === 'mentor');
       
-      // Temporary Test: Mandatory Activation of Mentorship Qualification!!
-      this.isEligibleMentor = false;
+      this.isEligibleMentor = true;
 
       // Set toggle based on current localStorage role (preserve user's current state)
       const currentRole = localStorage.getItem('userRole') || 'mentee';
@@ -196,13 +194,13 @@ export default {
   },
   watch: {
     async mentorModeEnabled(newValue, oldValue) {
-      if (!this.isEligibleMentor && newValue === true) {
-        // guard: revert and show hint
-        this.$nextTick(() => {
-          this.mentorModeEnabled = false;
-        });
-        return;
-      }
+      // if (!this.isEligibleMentor && newValue === true) {
+      //   // guard: revert and show hint
+      //   this.$nextTick(() => {
+      //     this.mentorModeEnabled = false;
+      //   });
+      //   return;
+      // }
 
       // If currently on any bookings route, route to the correct one based on mode
       const isOnBookings = this.$route.path === '/my-bookings' || this.$route.path === '/mentors-bookings';
