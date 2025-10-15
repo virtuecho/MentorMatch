@@ -4,6 +4,9 @@ const { PrismaClient } = require("@prisma/client");
 
 const prisma = new PrismaClient();
 
+let token;
+let userId;
+
 // Clean DB before running tests
 beforeAll(async () => {
   await prisma.mentorSkill.deleteMany();
@@ -15,8 +18,6 @@ afterAll(async () => {
 });
 
 describe("Auth Endpoints", () => {
-  let token;
-  let userId;
 
   it("should register a new user", async () => {
     const res = await request(app)
@@ -112,5 +113,191 @@ describe("Auth Endpoints", () => {
     expect(res.statusCode).toBe(200);
     expect(res.body.fullName).toBe("Updated Name");
     expect(res.body.skills).toContain("JavaScript");
+  });
+});
+
+describe("Registration Input Validation", () => {
+  it("should reject empty email", async () => {
+    const res = await request(app)
+      .post("/auth/register")
+      .send({
+        fullName: "Test User",
+        email: "",
+        password: "password123"
+      });
+    expect(res.statusCode).toBe(400);
+  });
+
+  it("should reject empty password", async () => {
+    const res = await request(app)
+      .post("/auth/register")
+      .send({
+        fullName: "Test User",
+        email: "empty@example.com",
+        password: ""
+      });
+    expect(res.statusCode).toBe(400);
+  });
+
+  it("should reject invalid email format", async () => {
+    const res = await request(app)
+      .post("/auth/register")
+      .send({
+        fullName: "Test User",
+        email: "not-an-email",
+        password: "password123"
+      });
+    expect(res.statusCode).toBe(400);
+  });
+
+  it("should accept non-ASCII characters in name", async () => {
+    const res = await request(app)
+      .post("/auth/register")
+      .send({
+        fullName: "Æ张三김สมศักดิ์衞عفيفオバマ",
+        email: "nonasciiname@example.com",
+        password: "password123"
+      });
+    expect(res.statusCode).toBe(201);
+  });
+
+  it("should accept non-ASCII characters in passwords", async () => {
+    const res = await request(app)
+      .post("/auth/register")
+      .send({
+        fullName: "Test User",
+        email: "nonasciipassword@example.com",
+        password: "Æ张三김สมศักดิ์衞عفيفオバマ"
+      });
+    expect(res.statusCode).toBe(201);
+  });
+
+  it("should reject extremely long names", async () => {
+    const longName = "a".repeat(256); // Assuming 255 is max length
+    const res = await request(app)
+      .post("/auth/register")
+      .send({
+        fullName: longName,
+        email: "longname@example.com",
+        password: "password123"
+      });
+    expect(res.statusCode).toBe(400);
+  });
+
+  it("should reject extremely long passwords", async () => {
+    const longPassword = "a".repeat(1025); // Assuming 1024 is max length
+    const res = await request(app)
+      .post("/auth/register")
+      .send({
+        fullName: "Test User",
+        email: "longpass@example.com",
+        password: longPassword
+      });
+    expect(res.statusCode).toBe(400);
+  });
+});
+
+describe("Login Edge Cases", () => {
+  it("should reject login with invalid or empty email", async () => {
+    const res = await request(app)
+      .post("/auth/login")
+      .send({
+        email: "",
+        password: "password123"
+      });
+    expect(res.statusCode).toBe(400);
+  });
+
+  it("should reject login with empty password", async () => {
+    const res = await request(app)
+      .post("/auth/login")
+      .send({
+        email: "test@example.com",
+        password: ""
+      });
+    expect(res.statusCode).toBe(400);
+  });
+
+  it("should reject login with non-existent email", async () => {
+    const res = await request(app)
+      .post("/auth/login")
+      .send({
+        email: "nonexistent@example.com",
+        password: "password123"
+      });
+    expect(res.statusCode).toBe(401);
+  });
+
+  it("should reject login with SQL injection attempt", async () => {
+    const res = await request(app)
+      .post("/auth/login")
+      .send({
+        email: "sqlinjection@example.com",
+        password: "' OR '1'='1"
+      });
+    expect(res.statusCode).toBe(401);
+  });
+});
+
+describe("Profile Update", () => {
+  it("should add new education and experience", async () => {
+    const res = await request(app)
+      .put("/auth/profile")
+      .set("Authorization", `Bearer ${token}`)
+      .send({
+        educations: [
+          { action: "add", university: "Uni A", degree: "BSc", startYear: 2020, endYear: 2023, major: "CS" }
+        ],
+        experience: [
+          { action: "add", company: "Company X", position: "Engineer", startYear: 2021, endYear: 2024 }
+        ]
+      });
+
+    expect(res.statusCode).toBe(200);
+
+    const edu = await prisma.education.findFirst({ where: { university: "Uni A", userId } });
+    const exp = await prisma.experience.findFirst({ where: { company: "Company X", userId } });
+    expect(edu).not.toBeNull();
+    expect(exp).not.toBeNull();
+  });
+
+  it("should edit existing education", async () => {
+    const edu = await prisma.education.create({
+      data: { userId, university: "Uni B", degree: "BA", major: "History", startYear: 2018 }
+    });
+
+    const res = await request(app)
+      .put("/auth/profile")
+      .set("Authorization", `Bearer ${token}`)
+      .send({
+        educations: [
+          { action: "edit", id: edu.id, degree: "MA", major: "Ancient History" }
+        ]
+      });
+
+    expect(res.statusCode).toBe(200);
+
+    const updated = await prisma.education.findUnique({ where: { id: edu.id } });
+    expect(updated.degree).toBe("MA");
+  });
+
+  it("should delete education", async () => {
+    const edu = await prisma.education.create({
+      data: { userId, university: "Uni C", degree: "PhD", major: "Physics", startYear: 2015 }
+    });
+
+    const res = await request(app)
+      .put("/auth/profile")
+      .set("Authorization", `Bearer ${token}`)
+      .send({
+        educations: [
+          { action: "delete", id: edu.id }
+        ]
+      });
+
+    expect(res.statusCode).toBe(200);
+
+    const deleted = await prisma.education.findUnique({ where: { id: edu.id } });
+    expect(deleted).toBeNull();
   });
 });
