@@ -72,9 +72,6 @@
             </button>
           </div>
         </div>
-        <div class="mentor-avatar">
-          <img :src="booking.menteeAvatar" :alt="booking.mentee" />
-        </div>
         </div>
      </div>
 
@@ -404,6 +401,7 @@ export default {
   align-items: center;
   gap: 20px;
   flex: 1;
+  justify-content: space-between;
 }
 
 .booking-info {
@@ -490,25 +488,21 @@ export default {
 }
 
 .accept-btn {
-  background-color: #22c55e;
-  color: white;
-  border-color: #22c55e;
+  background-color: #d4edda;
+  color: #155724;
 }
 
 .accept-btn:hover {
-  background-color: #16a34a;
-  border-color: #16a34a;
+  background-color: #107c38;
 }
 
 .reject-btn {
-  background-color: #ef4444;
-  color: white;
-  border-color: #ef4444;
+  background-color: #f8d7da;
+  color: #721c24;
 }
 
 .reject-btn:hover {
-  background-color: #dc2626;
-  border-color: #dc2626;
+  background-color: #b91c1c;
 }
 
 .cancel-btn {
@@ -530,13 +524,6 @@ export default {
 .booking-actions {
   display: flex;
   align-items: center;
-}
-
-.mentor-avatar img {
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  object-fit: cover;
 }
 
 
@@ -676,11 +663,6 @@ export default {
     flex-direction: column;
     align-items: flex-start;
     gap: 12px;
-  }
-  .mentor-avatar {
-    width: 60px;
-    height: 60px;
-    align-self: flex-end;
   }
 }
 

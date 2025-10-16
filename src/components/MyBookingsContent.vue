@@ -46,9 +46,6 @@
             </button>
           </div>
         </div>
-        <div class="mentor-avatar">
-          <img :src="booking.mentorAvatar" :alt="booking.mentor" />
-        </div>
       </div>
     </div>
 
@@ -294,6 +291,7 @@ export default {
   align-items: center;
   gap: 20px;
   flex: 1;
+  justify-content: space-between;
 }
 
 .booking-info {
@@ -384,20 +382,6 @@ export default {
 .cancel-btn svg {
   width: 16px;
   height: 16px;
-}
-
-.mentor-avatar {
-  width: 80px;
-  height: 80px;
-  border-radius: 8px;
-  overflow: hidden;
-  flex-shrink: 0;
-}
-
-.mentor-avatar img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
 }
 
 .empty-state {
@@ -560,11 +544,6 @@ export default {
     gap: 12px;
   }
   
-  .mentor-avatar {
-    width: 60px;
-    height: 60px;
-    align-self: flex-end;
-  }
 }
 
 @media (max-width: 480px) {
