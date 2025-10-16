@@ -23,7 +23,7 @@
           
           <div class="filter-dropdown">
             <select v-model="selectedMajor" class="filter-select">
-              <option value="">Select major</option>
+              <option value="">Select field</option>
               <option value="computer-science">Computer Science</option>
               <option value="data-science">Data Science</option>
               <option value="ai-ml">AI & Machine Learning</option>

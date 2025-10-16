@@ -29,7 +29,7 @@
             </div>
             <div class="user-info">
               <h2 class="user-name">{{ displayFullName }}</h2>
-              <p class="user-location">{{ profile.location || 'Melbourne / AEST' }}</p>
+              <p class="user-location">{{ profile.location || '' }}</p>
             </div>
           </div>
         </div>
@@ -52,7 +52,7 @@
           
           <!-- Location Field -->
           <div class="form-field">
-            <label class="field-label">Location / Timezone</label>
+            <label class="field-label">Location</label>
             <div class="input-container">
               <input 
                 type="text" 
@@ -283,7 +283,7 @@
           <!-- Action Buttons -->
           <div class="button-group">
             <button v-if="!isEditMode" class="edit-btn" @click="enableEditMode">
-              Edit My Profile
+              Edit profile
             </button>
             <template v-else>
               <button class="cancel-btn" @click="confirmCancelChanges">

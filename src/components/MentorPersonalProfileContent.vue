@@ -34,7 +34,7 @@
 
           <!-- Available Sessions Section -->
         <div class="available-sessions-section">
-          <h3 class="sessions-title">Available Sessions</h3>
+          <h3 class="sessions-title"></h3>
           
           <!-- Filter Info -->
           <div v-if="hasActiveFilters" class="filter-info">
