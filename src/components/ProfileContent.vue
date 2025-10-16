@@ -86,20 +86,6 @@
           <div class="contact-section">
             <h3 class="section-title">Contact Information</h3>
             
-            <!-- Phone Field -->
-            <div class="form-field">
-              <label class="field-label">Phone</label>
-              <div class="input-container">
-                <input 
-                  type="tel" 
-                  v-model="profile.phone"
-                  class="form-input"
-                  placeholder="000-000-0000"
-                  :disabled="!isEditMode"
-                />
-              </div>
-            </div>
-            
             <!-- Social Media Field -->
             <div class="form-field">
               <label class="field-label">Social Media</label>

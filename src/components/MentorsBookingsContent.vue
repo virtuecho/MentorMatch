@@ -137,9 +137,7 @@ export default {
   },
   computed: {
     filteredBookings() {
-      if (this.activeFilter === 'published') {
-        return this.bookings
-      } else if (this.activeFilter === 'all') {
+      if (this.activeFilter === 'all') {
         return this.bookings.filter(booking =>
           booking.status.toLowerCase() !== 'published'
           )
@@ -198,10 +196,10 @@ export default {
       // Add the new meeting to bookings list
       const newBooking = {
         id: this.bookings.length + 1,
-        status: 'Pending',
+        status: 'Published',
         time: `${meetingData.date}, ${meetingData.time} • ${meetingData.location}`,
-        mentee: 'New Meeting',
-        menteeAvatar: '/default-avatar.jpg'
+        mentee: meetingData.mentee || 'New Meeting',
+        menteeAvatar: meetingData.menteeAvatar || '/default-avatar.jpg'
       }
       this.bookings.unshift(newBooking)
       this.closeCreateModal()
