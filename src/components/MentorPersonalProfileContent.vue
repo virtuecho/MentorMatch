@@ -125,7 +125,7 @@
           <div class="info-section">
             <h2 class="section-title">About</h2>
             <p class="mentor-bio">
-              {{ mentor.bio || 'This mentor has not provided a bio yet. Please check back later for more information about their background and expertise.' }}
+              {{ mentor.bio || 'This user hasn\'t added anything to their bio.' }}
             </p>
           </div>
 
@@ -346,7 +346,7 @@ export default {
           durationMins: slot.durationMins,
           city: slot.city ? slot.city.charAt(0).toUpperCase() + slot.city.slice(1).toLowerCase() : '',
           address: slot.address || '',
-          isBooked: slot.isBooked || false
+          isBooked: Boolean(slot.isBooked) || Boolean(slot.isRequested)
         }));
         
         // Apply filters from dashboard

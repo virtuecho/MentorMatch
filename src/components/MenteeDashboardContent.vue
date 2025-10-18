@@ -235,9 +235,9 @@ export default {
         this.mentors = res.data.map(m => ({
           id: m.id,
           name: m.fullName || 'Unnamed Mentor',
-          avatar: m.profileImageUrl || '/default-avatar.jpg',
+          avatar: m.profileImageUrl || '/default-avatar.svg',
           title: m.position || 'Mentor',
-          company: m.company || '—',
+          company: m.company || 'MentorMatch',
           tags: m.skill || []
         }));
       } catch (err) {
