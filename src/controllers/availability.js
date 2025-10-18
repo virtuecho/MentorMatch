@@ -99,7 +99,7 @@ exports.getMentorAvailability = async (req, res) => {
       },
       orderBy: { startTime: 'asc' },
       include: {
-        bookings: currentUserId
+        booking: currentUserId
           ? {
               where: {
                 menteeId: currentUserId,
