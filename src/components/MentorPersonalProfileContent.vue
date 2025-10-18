@@ -129,6 +129,67 @@
             </p>
           </div>
 
+          <!-- Social Media Section -->
+          <div class="info-section">
+            <h2 class="section-title">Social Media</h2>
+            <div class="social-links">
+              <a 
+                v-if="normalizedMentorSocial.instagram"
+                :href="normalizedMentorSocial.instagram"
+                class="social-link instagram"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Instagram"
+                title="Instagram"
+              >
+                <!-- Instagram Icon -->
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                  <rect x="3" y="3" width="18" height="18" rx="5" stroke="#DB2777" stroke-width="1.8"/>
+                  <circle cx="12" cy="12" r="4" stroke="#DB2777" stroke-width="1.8"/>
+                  <circle cx="17.5" cy="6.5" r="1" fill="#DB2777"/>
+                </svg>
+              </a>
+              <a 
+                v-if="normalizedMentorSocial.facebook"
+                :href="normalizedMentorSocial.facebook"
+                class="social-link facebook"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Facebook"
+                title="Facebook"
+              >
+                <!-- Facebook Icon -->
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                  <circle cx="12" cy="12" r="9" stroke="#2563EB" stroke-width="1.8"/>
+                  <path d="M13 10h2V8h-2c-1.1 0-2 .9-2 2v2H9v2h2v4h2v-4h2v-2h-2v-2c0-.55.45-1 1-1Z" fill="#2563EB"/>
+                </svg>
+              </a>
+              <a 
+                v-if="normalizedMentorSocial.linkedin"
+                :href="normalizedMentorSocial.linkedin"
+                class="social-link linkedin"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="LinkedIn"
+                title="LinkedIn"
+              >
+                <!-- LinkedIn Icon -->
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                  <rect x="3" y="3" width="18" height="18" rx="3" stroke="#0EA5E9" stroke-width="1.8"/>
+                  <circle cx="8" cy="10" r="2" fill="#0EA5E9"/>
+                  <rect x="6.5" y="12" width="3" height="6.5" fill="#0EA5E9"/>
+                  <path d="M12 12h2.5a3 3 0 0 1 3 3v3.5H14.5V15.5c0-.55-.45-1-1-1H12V12Z" fill="#0EA5E9"/>
+                </svg>
+              </a>
+            </div>
+            <p 
+              v-if="!normalizedMentorSocial.instagram && !normalizedMentorSocial.facebook && !normalizedMentorSocial.linkedin" 
+              class="empty-social"
+            >
+              No social media provided.
+            </p>
+          </div>
+
           <!-- Expertise Section -->
           <div class="info-section">
             <h2 class="section-title">Expertise</h2>
@@ -197,6 +258,20 @@ export default {
      },
      hasActiveFilters() {
        return this.filterDate || this.filterTime || this.filterCity;
+     },
+     normalizedMentorSocial() {
+       const normalize = (val, base) => {
+         if (!val) return '';
+         const trimmed = String(val).trim();
+         if (/^https?:\/\//i.test(trimmed)) return trimmed;
+         const handle = trimmed.replace(/^@/, '');
+         return `${base}${handle}`;
+       };
+       return {
+         instagram: normalize(this.mentor.instagramUrl, 'https://instagram.com/'),
+         facebook: normalize(this.mentor.facebookUrl, 'https://facebook.com/'),
+         linkedin: normalize(this.mentor.linkedinUrl, 'https://www.linkedin.com/in/')
+       };
      }
    },
   data() {
@@ -212,7 +287,10 @@ export default {
         experience: '',
         degree: '',
         university: '',
-        graduationYear: ''
+        graduationYear: '',
+        instagramUrl: '',
+        facebookUrl: '',
+        linkedinUrl: ''
       },
       availableSessions: [],
       isLoadingSessions: true,
@@ -243,12 +321,15 @@ export default {
           experience: '8+ years',
           degree: 'PhD in Computer Science',
           university: 'University of Sydney',
-          graduationYear: '2015'
+          graduationYear: '2015',
+          instagramUrl: info.profile?.instagramUrl || '',
+          facebookUrl: info.profile?.facebookUrl || '',
+          linkedinUrl: info.profile?.linkedinUrl || ''
         };
       } catch (error) {
         console.error('Failed to load mentor profile:', error);
       }
-    },
+    }
     goBack() {
       this.$router.go(-1);
     },
@@ -949,5 +1030,31 @@ export default {
   }
   
 
+}
+.social-links {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-top: 8px;
+}
+.social-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: #f3f4f6;
+  border: 1px solid #e5e7eb;
+  transition: all 0.2s ease;
+}
+.social-link:hover {
+  background: #e5e7eb;
+  transform: translateY(-1px);
+}
+.empty-social {
+  font-size: 13px;
+  color: #6b7280;
+  margin-top: 8px;
 }
 </style>

@@ -74,7 +74,7 @@
                 v-model="profile.bio"
                 class="form-textarea"
                 rows="4"
-                placeholder="Experience software engineer passionate about mentoring the next generation of tech talent. Skilled in web development."
+                placeholder="Tell us about yourself"
                 :disabled="!isEditMode"
               ></textarea>
             </div>
@@ -89,14 +89,92 @@
             <!-- Social Media Field -->
             <div class="form-field">
               <label class="field-label">Social Media</label>
-              <div class="input-container">
-                <input 
-                  type="text" 
-                  v-model="profile.socialMedia"
-                  class="form-input"
-                  placeholder="@"
-                  :disabled="!isEditMode"
-                />
+              
+              <!-- Display: Icons with links (when not editing) -->
+              <div v-if="!isEditMode" class="social-links">
+                <a 
+                  v-if="normalizedSocial.instagram"
+                  :href="normalizedSocial.instagram"
+                  class="social-link instagram"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="Instagram"
+                  title="Instagram"
+                >
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                    <rect x="3" y="3" width="18" height="18" rx="5" stroke="#DB2777" stroke-width="1.8"/>
+                    <circle cx="12" cy="12" r="4" stroke="#DB2777" stroke-width="1.8"/>
+                    <circle cx="17.5" cy="6.5" r="1" fill="#DB2777"/>
+                  </svg>
+                </a>
+                <a 
+                  v-if="normalizedSocial.facebook"
+                  :href="normalizedSocial.facebook"
+                  class="social-link facebook"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="Facebook"
+                  title="Facebook"
+                >
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                    <circle cx="12" cy="12" r="9" stroke="#2563EB" stroke-width="1.8"/>
+                    <path d="M13 10h2V8h-2c-1.1 0-2 .9-2 2v2H9v2h2v4h2v-4h2v-2h-2v-2c0-.55.45-1 1-1Z" fill="#2563EB"/>
+                  </svg>
+                </a>
+                <a 
+                  v-if="normalizedSocial.linkedin"
+                  :href="normalizedSocial.linkedin"
+                  class="social-link linkedin"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="LinkedIn"
+                  title="LinkedIn"
+                >
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                    <rect x="3" y="3" width="18" height="18" rx="3" stroke="#0EA5E9" stroke-width="1.8"/>
+                    <circle cx="8" cy="10" r="2" fill="#0EA5E9"/>
+                    <rect x="6.5" y="12" width="3" height="6.5" fill="#0EA5E9"/>
+                    <path d="M12 12h2.5a3 3 0 0 1 3 3v3.5H14.5V15.5c0-.55-.45-1-1-1H12V12Z" fill="#0EA5E9"/>
+                  </svg>
+                </a>
+
+                <p v-if="!normalizedSocial.instagram && !normalizedSocial.facebook && !normalizedSocial.linkedin" class="empty-social">
+                  No social media provided.
+                </p>
+              </div>
+
+              <!-- Edit: Inputs (when editing) -->
+              <div v-else class="social-inputs">
+                <div class="form-field">
+                  <label class="field-label">Instagram</label>
+                  <input 
+                    type="url" 
+                    v-model="profile.instagramUrl"
+                    class="form-input"
+                    placeholder="https://instagram.com/your_handle or @your_handle"
+                  />
+                </div>
+                <div class="form-field">
+                  <label class="field-label">Facebook</label>
+                  <input 
+                    type="url" 
+                    v-model="profile.facebookUrl"
+                    class="form-input"
+                    placeholder="https://facebook.com/your.profile or your.profile"
+                  />
+                </div>
+                <div class="form-field">
+                  <label class="field-label">LinkedIn</label>
+                  <input 
+                    type="url" 
+                    v-model="profile.linkedinUrl"
+                    class="form-input"
+                    placeholder="https://www.linkedin.com/in/your-profile or your-profile"
+                  />
+                </div>
+                <p class="helper-text">
+                  You can paste full URLs or usernames/handles; links will be normalized automatically.
+                </p>
               </div>
             </div>
           </div>
@@ -287,7 +365,7 @@
 </template>
 
 <script>
-import { getProfile } from '@/services/auth'
+import { getProfile, updateProfile } from '@/services/auth'
 
 export default {
   name: 'ProfileContent',
@@ -299,7 +377,10 @@ export default {
         location: 'Melbourne / AEST',
         phone: '000-000-0000',
         socialMedia: '@',
-        bio: 'Experience software engineer passionate about mentoring the next generation of tech talent. Skilled in web development.',
+        instagramUrl: '',
+        facebookUrl: '',
+        linkedinUrl: '',
+        bio: 'Tell us about yourself',
         avatar: null,
         education: [
           {
@@ -340,6 +421,35 @@ export default {
         return prefix
       }
       return ''
+    },
+    normalizedSocial() {
+      const normalize = (service, raw) => {
+        if (!raw) return ''
+        let val = String(raw).trim()
+        if (!val) return ''
+        if (val.startsWith('@')) val = val.slice(1)
+        const hasProtocol = /^https?:\/\//i.test(val)
+        const hasDomain = /(instagram\.com|facebook\.com|linkedin\.com)/i.test(val)
+        if (hasDomain) {
+          return hasProtocol ? val : `https://${val}`
+        }
+        switch (service) {
+          case 'instagram':
+            return `https://instagram.com/${val.replace(/^\/+/, '')}`
+          case 'facebook':
+            return `https://facebook.com/${val.replace(/^\/+/, '')}`
+          case 'linkedin':
+            val = val.replace(/^in\//, '').replace(/^\/+/, '')
+            return `https://www.linkedin.com/in/${val}`
+          default:
+            return ''
+        }
+      }
+      return {
+        instagram: normalize('instagram', this.profile.instagramUrl),
+        facebook: normalize('facebook', this.profile.facebookUrl),
+        linkedin: normalize('linkedin', this.profile.linkedinUrl)
+      }
     }
   },
   methods: {
@@ -366,6 +476,9 @@ export default {
           this.profile.location = userData.profile.location || this.profile.location
           this.profile.phone = userData.profile.phone || this.profile.phone
           this.profile.socialMedia = userData.profile.socialMedia || this.profile.socialMedia
+          this.profile.instagramUrl = userData.profile.instagramUrl || this.profile.instagramUrl
+          this.profile.facebookUrl = userData.profile.facebookUrl || this.profile.facebookUrl
+          this.profile.linkedinUrl = userData.profile.linkedinUrl || this.profile.linkedinUrl
           this.profile.bio = userData.profile.bio || this.profile.bio
           this.profile.avatar = userData.profile.profileImageUrl || this.profile.avatar
         }
@@ -450,12 +563,18 @@ export default {
           location: this.profile.location,
           phone: this.profile.phone,
           socialMedia: this.profile.socialMedia,
+          instagramUrl: this.profile.instagramUrl,
+          facebookUrl: this.profile.facebookUrl,
+          linkedinUrl: this.profile.linkedinUrl,
           bio: this.profile.bio,
           profileImageUrl: this.profile.avatar
         }
         
-        // TODO: Call updateProfile API
-        // await updateProfile(payload)
+        // Call updateProfile API and wait for backend confirmation
+        await updateProfile(payload)
+
+        // Immediately reload from backend to ensure UI reflects persisted data
+        await this.loadUserProfile()
         
         // Update original profile after successful save
         this.originalProfile = JSON.parse(JSON.stringify(this.profile))
@@ -1217,5 +1336,46 @@ export default {
     font-size: 16px;
     margin: 24px 0 16px 0;
   }
+}
+/* Social links */
+.social-links {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-top: 8px;
+}
+
+.social-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: #f3f4f6;
+  border: 1px solid #e5e7eb;
+  transition: all 0.2s ease;
+}
+
+.social-link:hover {
+  background: #e5e7eb;
+  transform: translateY(-1px);
+}
+
+.social-link.instagram svg { }
+.social-link.facebook svg { }
+.social-link.linkedin svg { }
+
+.empty-social {
+  font-family: Inter, sans-serif;
+  font-size: 14px;
+  color: #9ca3af;
+  margin: 4px 0 0 0;
+}
+
+.helper-text {
+  font-size: 12px;
+  color: #6b7280;
+  margin-top: 8px;
 }
 </style>

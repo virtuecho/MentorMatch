@@ -9,7 +9,6 @@ export const register = (fullName, email, password, role) => {
     return API.post("/auth/register", payload);
 };
     
-
 // Login
 export const login = (email, password) =>
     API.post("/auth/login", { email, password });
@@ -23,8 +22,9 @@ export const logout = () => {
 export const getProfile = () => API.get("/auth/profile");
 
 // Update profile
-export const updateProfile = (payload) => {
-    const res = API.put("/auth/profile", payload);
+export const updateProfile = async (payload) => {
+    // Ensure we await the request and return the response data so caller can properly wait
+    const res = await API.put("/auth/profile", payload);
     return res.data;
 }
 
