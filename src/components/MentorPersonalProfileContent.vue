@@ -329,7 +329,7 @@ export default {
       } catch (error) {
         console.error('Failed to load mentor profile:', error);
       }
-    }
+    },
     goBack() {
       this.$router.go(-1);
     },
