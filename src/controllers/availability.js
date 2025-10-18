@@ -78,6 +78,7 @@ exports.getMyAvailability = async (req, res) => {
 exports.getMentorAvailability = async (req, res) => {
   try {
     const { mentorId } = req.params;
+    const { currentUserId } = req.user?.id;
     
     // Verify the mentor exists and is approved
     const mentor = await prisma.user.findUnique({
@@ -96,10 +97,38 @@ exports.getMentorAvailability = async (req, res) => {
         mentorId: parseInt(mentorId),
         isBooked: false
       },
-      orderBy: { startTime: 'asc' }
+      orderBy: { startTime: 'asc' },
+      include: {
+        bookings: currentUserId
+          ? {
+              where: {
+                menteeId: currentUserId,
+              },
+              select: {
+                id: true,
+                status: true,
+                menteeId: true,
+              }
+            }
+          : false
+      }
+
     });
 
-    res.json(slots);
+    const response = slots.map(slot => ({
+      id: slot.id,
+      mentorId: slot.mentorId,
+      title: slot.title,
+      startTime: slot.startTime,
+      durationMins: slot.durationMins,
+      city: slot.city,
+      address: slot.address,
+      note: slot.note,
+      isBooked: slot.isBooked,
+      isRequested: Array.isArray(slot.bookings) ? slot.bookings.length > 0 : false
+    }));
+
+    res.json(response);
   } catch (err) {
     console.error('Get mentor availability error:', err);
     res.status(500).json({ error: 'Failed to fetch mentor availability' });
