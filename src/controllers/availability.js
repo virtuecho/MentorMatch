@@ -125,7 +125,7 @@ exports.getMentorAvailability = async (req, res) => {
       address: slot.address,
       note: slot.note,
       isBooked: slot.isBooked,
-      isRequested: Array.isArray(slot.bookings) ? slot.bookings.length > 0 : false
+      isRequested: Array.isArray(slot.booking) ? slot.booking.length > 0 : false
     }));
 
     res.json(response);
