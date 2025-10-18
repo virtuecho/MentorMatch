@@ -78,7 +78,7 @@ exports.getMyAvailability = async (req, res) => {
 exports.getMentorAvailability = async (req, res) => {
   try {
     const { mentorId } = req.params;
-    const { currentUserId } = req.user?.id;
+    const currentUserId = req.user?.id;
     
     // Verify the mentor exists and is approved
     const mentor = await prisma.user.findUnique({
