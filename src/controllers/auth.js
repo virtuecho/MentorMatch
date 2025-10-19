@@ -271,7 +271,9 @@ async function updateEducations(userId, educations) {
 
 async function updateExperiences(userId, experiences) {
   for (const exp of experiences) {
-    const { action, id, company, position, startYear, endYear, expertise } = exp;
+    const { action, id, company, position, startYear, endYear, skills } = exp;
+    const expertise = skills ? JSON.stringify(skills) : undefined;
+
     if (action === 'add') {
       await prisma.experience.create({
         data: { 
