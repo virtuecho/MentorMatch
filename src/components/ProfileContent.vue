@@ -248,7 +248,7 @@
                     type="text" 
                     v-model="education.period"
                     class="form-input"
-                    :placeholder="education.isNew ? 'StartYear - EndYear' : 'Feb 2022 - Nov 2025'"
+                    :placeholder="education.isNew ? 'StartYear - EndYear (Leave blank if ongoing)' : 'Feb 2022 - Nov 2025'"
                     @input="education.isNew = false"
                     :disabled="!isEditMode"
                   />
@@ -328,7 +328,7 @@
                     type="text" 
                     v-model="experience.period"
                     class="form-input"
-                    placeholder="Jan 2023 - Present"
+                    placeholder="StartYear - EndYear (Leave blank if ongoing)"
                     :disabled="!isEditMode"
                   />
                 </div>
