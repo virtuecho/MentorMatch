@@ -1,23 +1,28 @@
-const jwt = require('jsonwebtoken')
+const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
+// Default avatar fallback
+const DEFAULT_AVATAR = 'https://ui-avatars.com/api/?name=User&background=0D8ABC&color=fff';
+
+// Helper to ensure avatar fallback
+function ensureAvatar(profileImageUrl) {
+  return profileImageUrl || DEFAULT_AVATAR;
+}
+
 exports.register = async (req, res) => {
   const { fullName, email, password, role } = req.body;
-  try {
-    // Check if email is not in the database
-    const existingUser = await prisma.user.findUnique({ where: { email } });
-    if (existingUser) {
-      return res.status(409).json({ error: 'This email address has been linked to an existing account' });
-    }
+  const normalizedEmail = email ? email.trim().toLowerCase() : '';
 
-    if (!email || email.trim() === "") {
-        return res.status(400).json({ error: "Email is required" });
+  try {
+    // Basic validations
+    if (!normalizedEmail) {
+      return res.status(400).json({ error: "Email is required" });
     }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
+    if (!emailRegex.test(normalizedEmail)) {
         return res.status(400).json({ error: "Invalid email format" });
     }
 
@@ -33,28 +38,41 @@ exports.register = async (req, res) => {
         return res.status(400).json({ error: "Password too long" });
     }
 
-    // Hash password in create user
+    // Check if email already exists (case-insensitive via normalizedEmail)
+    const existingUser = await prisma.user.findUnique({ where: { email: normalizedEmail } });
+    if (existingUser) {
+      return res.status(409).json({ error: 'This email address has been linked to an existing account' });
+    }
+
+    // Hash password and create user
     const hashedPassword = await bcrypt.hash(password, 10);
     const user = await prisma.user.create({
       data: {
-        email, 
-        passwordHash: hashedPassword, 
+        email: normalizedEmail,
+        passwordHash: hashedPassword,
         role: role || 'mentee',
         profile: { create: { fullName: fullName || 'default-user' } }
       },
-      include: { profile: true }
+      select: {
+        id: true,
+        email: true,
+        role: true,
+        profile: true
+      }
     });
+
     res.status(201).json({ message: 'User registered', user });
   } catch (err) {
+    console.error('Registration error:', err);
     res.status(400).json({ error: 'Registration failed' });
-    console.error('Registration error: ', err);
   }
 };
 
 exports.login = async (req, res) => {
   const { email, password } = req.body;
-  
-  if (!email || email.trim() === "") {
+  const normalizedEmail = email ? email.trim().toLowerCase() : '';
+
+  if (!normalizedEmail) {
     return res.status(400).json({ error: "Email is required" });
   }
 
@@ -63,13 +81,12 @@ exports.login = async (req, res) => {
   }
 
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!emailRegex.test(email)) {
+  if (!emailRegex.test(normalizedEmail)) {
     return res.status(400).json({ error: "Invalid email format" });
   }
 
   try {
-    // Check credentials
-    const user = await prisma.user.findUnique({ where: { email } });
+    const user = await prisma.user.findUnique({ where: { email: normalizedEmail } });
     if (!user) return res.status(401).json({ error: 'Invalid credentials' });
 
     const validPassword = await bcrypt.compare(password, user.passwordHash);
@@ -82,7 +99,7 @@ exports.login = async (req, res) => {
       { expiresIn: '1d' }
     );
 
-    // Return token and basic user info
+    // Return token and basic user info without passwordHash
     res.json({
       token,
       user: {
@@ -92,16 +109,38 @@ exports.login = async (req, res) => {
       }
     });
   } catch (err) {
+    console.error('Login error:', err);
     res.status(500).json({ error: 'Login failed' });
-    console.error('Login error: ', err);
   }
 };
 
 exports.getProfile = async (req, res) => {
   try {
-    const user = await prisma.user.findUnique({ where: { id: req.user.id } });
-    res.json(user);
+    const user = await prisma.user.findUnique({
+      where: { id: req.user.id },
+      include: {
+        profile: true
+      }
+    });
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    const profile = user.profile || {};
+    const safeProfile = {
+      ...profile,
+      profileImageUrl: ensureAvatar(profile.profileImageUrl)
+    };
+
+    res.json({
+      id: user.id,
+      email: user.email,
+      role: user.role,
+      profile: safeProfile
+    });
   } catch (err) {
+    console.error('Get profile error:', err);
     res.status(500).json({ error: 'Could not fetch profile' });
   }
 };
@@ -139,14 +178,15 @@ exports.getMentorPublicProfile = async (req, res) => {
     }
 
     // Formatted
+    const profile = mentor.profile || {};
     const publicProfile = {
       id: mentor.id,
-      fullName: mentor.profile?.fullName,
-      profileImageUrl: mentor.profile?.profileImageUrl,
-      bio: mentor.profile?.bio,
-      location: mentor.profile?.location,
-      linkedinUrl: mentor.profile?.linkedinUrl,
-      websiteUrl: mentor.profile?.websiteUrl,
+      fullName: profile.fullName,
+      profileImageUrl: ensureAvatar(profile.profileImageUrl),
+      bio: profile.bio,
+      location: profile.location,
+      linkedinUrl: profile.linkedinUrl,
+      websiteUrl: profile.websiteUrl,
       skills: mentor.mentorSkills.map(skill => skill.skillName)
     };
 
@@ -200,7 +240,13 @@ exports.updateProfile = async (req, res) => {
       await updateExperiences(userId, req.body.experience);
     }
 
-    res.json({ message: 'Profile updated', profile: updatedProfile });
+    // Ensure avatar fallback in response
+    const safeProfile = {
+      ...updatedProfile,
+      profileImageUrl: ensureAvatar(updatedProfile.profileImageUrl)
+    };
+
+    res.json({ message: 'Profile updated', profile: safeProfile });
   } catch (err) {
     if (err.code === 'P2025') {
       return res.status(404).json({ error: 'Profile not found' });
@@ -248,7 +294,9 @@ async function updateEducations(userId, educations) {
 
 async function updateExperiences(userId, experiences) {
   for (const exp of experiences) {
-    const { action, id, company, position, startYear, endYear, expertise } = exp
+    const { action, id, company, position, startYear, endYear, skills } = exp;
+    const expertise = skills ? JSON.stringify(skills) : undefined;
+
     if (action === 'add') {
       await prisma.experience.create({
         data: { 
