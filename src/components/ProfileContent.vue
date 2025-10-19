@@ -184,15 +184,14 @@
             <div class="section-header">
               <h3 class="section-title">Education</h3>
               <div class="section-actions" v-if="isEditMode">
-                <button class="add-item-btn" @click="addEducation">
-                  <svg class="plus-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M12 5v14m-7-7h14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <button class="edit-section-btn" @click="toggleEducationExpand" aria-label="Edit education">
+                  <svg class="edit-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M18.5 2.5l3 3L12 15l-4 1 1-4L18.5 2.5z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                   </svg>
                 </button>
-                <button class="edit-section-btn" @click="toggleEducationEdit">
-                  <svg class="edit-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    <path d="m18.5 2.5 3 3L12 15l-4 1 1-4 9.5-9.5z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <button class="add-item-btn" v-if="isEducationExpanded" @click="addEducation" aria-label="Add education">
+                  <svg class="plus-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 5v14m-7-7h14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                   </svg>
                 </button>
               </div>
@@ -205,6 +204,7 @@
                   <div class="education-info">
                     <h4 class="university-name">{{ education.university }}</h4>
                     <p class="degree-info">{{ education.degree }}</p>
+                    <p class="major-info" v-if="education.major">{{ education.major }}</p>
                     <p class="education-period">{{ education.period }}</p>
                   </div>
                 </div>
@@ -228,7 +228,17 @@
                     type="text" 
                     v-model="education.degree"
                     class="form-input"
-                    placeholder="Degree and major"
+                    placeholder="Degree"
+                    :disabled="!isEditMode"
+                  />
+                </div>
+                <div class="form-field">
+                  <label class="field-label">Major</label>
+                  <input 
+                    type="text" 
+                    v-model="education.major"
+                    class="form-input"
+                    placeholder="Major"
                     :disabled="!isEditMode"
                   />
                 </div>
@@ -238,7 +248,8 @@
                     type="text" 
                     v-model="education.period"
                     class="form-input"
-                    placeholder="Feb 2022 - Nov 2025"
+                    :placeholder="education.isNew ? 'StartYear - EndYear' : 'Feb 2022 - Nov 2025'"
+                    @input="education.isNew = false"
                     :disabled="!isEditMode"
                   />
                 </div>
@@ -259,15 +270,14 @@
             <div class="section-header">
               <h3 class="section-title">Experience</h3>
               <div class="section-actions" v-if="isEditMode">
-                <button class="add-item-btn" @click="addExperience">
-                  <svg class="plus-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M12 5v14m-7-7h14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <button class="edit-section-btn" @click="toggleExperienceExpand" aria-label="Edit experience">
+                  <svg class="edit-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M18.5 2.5l3 3L12 15l-4 1 1-4L18.5 2.5z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                   </svg>
                 </button>
-                <button class="edit-section-btn" @click="toggleExperienceEdit">
-                  <svg class="edit-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    <path d="m18.5 2.5 3 3L12 15l-4 1 1-4 9.5-9.5z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <button class="add-item-btn" v-if="isExperienceExpanded" @click="addExperience" aria-label="Add experience">
+                  <svg class="plus-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 5v14m-7-7h14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                   </svg>
                 </button>
               </div>
@@ -403,7 +413,9 @@ export default {
       },
       originalProfile: {},
       isEditingEducation: false,
+      isEducationExpanded: false,
       isEditingExperience: false,
+      isExperienceExpanded: false,
       userEmail: ''
     }
   },
@@ -510,13 +522,22 @@ export default {
       this.profile.education.push({
         university: '',
         degree: '',
+        major: '',
         period: '',
-        logo: null
+        logo: null,
+        isNew: true
       })
       this.isEditingEducation = true
     },
     removeEducation(index) {
       this.profile.education.splice(index, 1)
+    },
+    toggleEducationExpand() {
+      // Toggle section expand/collapse and sync editing state if present
+      this.isEducationExpanded = !this.isEducationExpanded
+      if (typeof this.isEditingEducation !== 'undefined') {
+        this.isEditingEducation = this.isEducationExpanded
+      }
     },
     toggleEducationEdit() {
       this.isEditingEducation = !this.isEditingEducation
@@ -537,6 +558,13 @@ export default {
     },
     toggleExperienceEdit() {
       this.isEditingExperience = !this.isEditingExperience
+    },
+    toggleExperienceExpand() {
+      // Toggle section expand/collapse and sync editing state if present
+      this.isExperienceExpanded = !this.isExperienceExpanded
+      if (typeof this.isEditingExperience !== 'undefined') {
+        this.isEditingExperience = this.isExperienceExpanded
+      }
     },
     updateExperienceSkills(index, skillsString) {
       const skills = skillsString.split(',').map(skill => skill.trim()).filter(skill => skill.length > 0)
@@ -855,6 +883,10 @@ export default {
   gap: 8px;
 }
 
+.section-actions .edit-icon {
+  color: #6b7280;
+}
+
 .contact-section,
 .education-section,
 .experience-section {
@@ -979,6 +1011,14 @@ export default {
 }
 
 .degree-info {
+  font-family: Inter, sans-serif;
+  font-weight: 400;
+  font-size: 14px;
+  color: #4b5563;
+  margin: 0 0 4px 0;
+}
+
+.major-info {
   font-family: Inter, sans-serif;
   font-weight: 400;
   font-size: 14px;
