@@ -24,13 +24,12 @@
                             rows="2"
                             required
                         ></textarea>
-                        <label for="meeting-description">Description</label>
+                        <label for="meeting-description">Description (optional)</label>
                         <textarea
                             id="meeting-description"
                             v-model="meetingDescription"
                             placeholder="e.g., What is ..."
                             rows="4"
-                            required
                         ></textarea>
                     </div>
                     <!-- Action Buttons -->
