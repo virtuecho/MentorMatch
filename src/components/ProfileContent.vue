@@ -493,15 +493,14 @@ export default {
           this.profile.avatar = userData.profile.profileImageUrl || this.profile.avatar
           this.profile.education = userData.profile.educations.map(edu => ({
             ...edu,
-            desc: `${edu.degree}, ${edu.major}`,
             period: `${edu.startYear} - ${edu.endYear}`,
             action: null
           }))
           this.profile.experience = userData.profile.experience.map(exp => ({
             ...exp,
-            skills: exp.expertise,
-            skillsString: exp.expertise.join(', '),
-            period: edu.endYear != null ? `${edu.startYear} - ${edu.endYear}` : `${edu.startYear} - Present`,
+            skills: JSON.parse(exp.expertise.replace(/'/g, '"')),
+            skillsString: JSON.parse(exp.expertise.replace(/'/g, '"')).join(', '),
+            period: exp.endYear != null ? `${exp.startYear} - ${exp.endYear}` : `${exp.startYear} - Present`,
             action: null
           }))
         }
