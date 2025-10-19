@@ -238,7 +238,7 @@ export default {
           avatar: m.profileImageUrl || '/default-avatar.svg',
           title: m.position || 'Mentor',
           company: m.company || 'MentorMatch',
-          tags: m.skill || []
+          tags: m.skill ? JSON.parse(m.skill.replace(/'/g, '"')) : []
         }));
       } catch (err) {
         console.error('Error fetching mentors:', err);

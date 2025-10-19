@@ -26,9 +26,9 @@
             </div>
             <div class="mentor-basic-info">
               <h1 class="mentor-name">{{ mentor.fullName || 'Mentor Name' }}</h1>
-              <p class="mentor-title">{{ mentor.professionalTitle || 'Professional Title' }}</p>
-              <p class="mentor-company">{{ mentor.company || 'Company Name' }}</p>
-              <p class="mentor-location">{{ mentor.location || 'Location' }}</p>
+              <p class="mentor-title">{{ mentor.professionalTitle || 'Mentor' }}</p>
+              <p class="mentor-company">{{ mentor.company || 'MentorMatch' }}</p>
+              <p class="mentor-location">{{ mentor.location || '' }}</p>
             </div>
           </div>
 
@@ -124,9 +124,12 @@
           <!-- About Section -->
           <div class="info-section">
             <h2 class="section-title">About</h2>
-            <p class="mentor-bio">
-              {{ mentor.bio || 'This user hasn\'t added anything to their bio.' }}
-            </p>
+              <template v-if="mentor.bio">
+                <p class="mentor-bio">
+                  {{ mentor.bio }}
+                </p>
+              </template>
+              <p v-else class="empty-social">This user hasn't added anything to their bio.</p>
           </div>
 
           <!-- Social Media Section -->
@@ -186,7 +189,7 @@
               v-if="!normalizedMentorSocial.instagram && !normalizedMentorSocial.facebook && !normalizedMentorSocial.linkedin" 
               class="empty-social"
             >
-              No social media provided.
+              No social media to show.
             </p>
           </div>
 
@@ -194,13 +197,16 @@
           <div class="info-section">
             <h2 class="section-title">Expertise</h2>
             <div class="expertise-tags">
-              <span 
-                v-for="skill in mentor.skills || ['Web Development', 'JavaScript', 'React']"
-                :key="skill"
-                class="expertise-tag"
-              >
-                {{ skill }}
-              </span>
+              <template v-if="Array.isArray(mentor.skills) && mentor.skills.length > 0">
+                <span
+                  v-for="skill in mentor.skills"
+                  :key="skill"
+                  class="expertise-tag"
+                >
+                  {{ skill }}
+                </span>
+              </template>
+              <p v-else class="empty-social">No skill to show.</p>
             </div>
           </div>
 
@@ -208,9 +214,12 @@
           <div class="info-section">
             <h2 class="section-title">Experience</h2>
             <div class="experience-item">
-              <h3 class="experience-title">{{ mentor.professionalTitle || 'Professional Title' }}</h3>
-              <p class="experience-company">{{ mentor.company || 'Company Name' }}</p>
-              <p class="experience-duration">{{ mentor.experience || '2+ years' }}</p>
+              <template v-if="mentor.experience">
+                <h3 class="experience-title">{{ mentor.professionalTitle || 'Title' }}</h3>
+                <p class="experience-company">{{ mentor.company || mentor.university || '' }}</p>
+                <p class="experience-duration">{{ mentor.expPeriod || '' }}</p>
+              </template>
+              <p v-else class="empty-social">No experience to show.</p>
             </div>
           </div>
 
@@ -218,9 +227,12 @@
           <div class="info-section">
             <h2 class="section-title">Education</h2>
             <div class="education-item">
-              <h3 class="education-degree">{{ mentor.degree || 'Bachelor of Computer Science' }}</h3>
-              <p class="education-university">{{ mentor.university || 'University Name' }}</p>
-              <p class="education-year">{{ mentor.graduationYear || '2020' }}</p>
+              <template v-if="mentor.education">
+                <h3 class="education-degree">{{ mentor.degree || '' }}</h3>
+                <p class="education-university">{{ mentor.university || 'University Name' }}</p>
+                <p class="education-year">{{ mentor.eduPeriod || '' }}</p>
+              </template>
+              <p v-else class="empty-social">No education to show.</p>
             </div>
           </div>
         </div>
@@ -284,13 +296,15 @@ export default {
         bio: '',
         avatar: '',
         skills: [],
-        experience: '',
+        expPeriod: '',
         degree: '',
         university: '',
-        graduationYear: '',
+        eduPeriod: '',
         instagramUrl: '',
         facebookUrl: '',
-        linkedinUrl: ''
+        linkedinUrl: '',
+        experience: false,
+        education: false
       },
       availableSessions: [],
       isLoadingSessions: true,
@@ -310,21 +324,26 @@ export default {
         const res = await getMentorProfile({ mentorId: this.mentorId });
         const info = res.data;
 
+        const education = info.profile?.educations;
+        const experience = info.profile?.experience;
+
         this.mentor = {
           fullName: info.profile?.fullName || info.email,
-          professionalTitle: 'Senior Software Engineer',
-          company: 'Google Australia',
+          professionalTitle: experience?.[0]?.position,
+          company: experience?.[0]?.company,
           location: info.profile?.location || '',
-          bio: info.profile?.bio || 'This user hasn\'t added anything to their bio.',
+          bio: info.profile?.bio || null,
           avatar: info.profile?.profileImageUrl || '/default-avatar.svg',
-          skills: ['JavaScript', 'React', 'Node.js', 'Python', 'AWS', 'Leadership'],
-          experience: '8+ years',
-          degree: 'PhD in Computer Science',
-          university: 'University of Sydney',
-          graduationYear: '2015',
+          skills: experience?.[0]?.expertise ? JSON.parse(experience?.[0]?.expertise.replace(/'/g, '"')) : null,
+          expPeriod: experience?.[0]?.endYear ? `${experience?.[0]?.startYear} - ${experience?.[0]?.endYear}` : `${experience?.[0]?.startYear} - Present`,
+          degree: `${education?.[0]?.degree} in ${education?.[0]?.major}`,
+          university: education?.[0]?.university,
+          eduPeriod: `${education?.[0]?.startYear} - ${education?.[0]?.endYear}`,
           instagramUrl: info.profile?.instagramUrl || '',
           facebookUrl: info.profile?.facebookUrl || '',
-          linkedinUrl: info.profile?.linkedinUrl || ''
+          linkedinUrl: info.profile?.linkedinUrl || '',
+          experience: experience?.[0] ? true : false,
+          education: education?.[0] ? true : false
         };
       } catch (error) {
         console.error('Failed to load mentor profile:', error);

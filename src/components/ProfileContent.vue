@@ -200,7 +200,7 @@
             <div v-for="(education, index) in profile.education" :key="index" class="education-item">
               <div v-if="!isEditingEducation" class="education-display">
                 <div class="education-header">
-                  <img :src="education.logo || '/default-university-logo.svg'" alt="University Logo" class="university-logo" />
+                  <img :src="education.logoUrl || '/default-university-logo.svg'" alt="University Logo" class="university-logo" />
                   <div class="education-info">
                     <h4 class="university-name">{{ education.university }}</h4>
                     <p class="degree-info">{{ education.degree }}</p>
@@ -433,6 +433,8 @@ export default {
           }
         ]
       },
+      deletedEdu: [],
+      deletedExp: [],
       originalProfile: {},
       isEditingEducation: false,
       isEducationExpanded: false,
@@ -516,14 +518,14 @@ export default {
           this.profile.education = userData.profile.educations.map(edu => ({
             ...edu,
             period: `${edu.startYear} - ${edu.endYear}`,
-            action: null
+            action: 'edit'
           }))
           this.profile.experience = userData.profile.experience.map(exp => ({
             ...exp,
             skills: JSON.parse(exp.expertise.replace(/'/g, '"')),
             skillsString: JSON.parse(exp.expertise.replace(/'/g, '"')).join(', '),
             period: exp.endYear != null ? `${exp.startYear} - ${exp.endYear}` : `${exp.startYear} - Present`,
-            action: null
+            action: 'edit'
           }))
         }
         
@@ -557,12 +559,20 @@ export default {
         major: '',
         startYear: '',
         endYear: '',
-        logo: null
+        logoUrl: null,
+        action: 'add'
       })
       this.isEditingEducation = true
     },
     removeEducation(index) {
-      this.profile.education.splice(index, 1)
+      const removed = this.profile.education[index];
+      if (removed && removed.userId) {
+        this.deletedEdu.push({
+          ...removed,
+          action: 'delete'
+        });
+      }
+      this.profile.education.splice(index, 1);
     },
     toggleEducationExpand() {
       // Toggle section expand/collapse and sync editing state if present
@@ -575,19 +585,38 @@ export default {
       this.isEditingEducation = !this.isEditingEducation
     },
     addExperience() {
-      this.profile.experience.push({
+      const newExp = {
         company: '',
         position: '',
         startYear: '',
         endYear: '',
-        skills: [],
         skillsString: '',
-        logo: null
-      })
-      this.isEditingExperience = true
+        skills: [],
+        expertise: [],
+        logo: null,
+        action: 'add'
+      };
+
+      // Convert skillsString to array if it's already populated
+      if (newExp.skillsString) {
+        newExp.expertise = newExp.skillsString
+          .split(',')
+          .map(s => s.trim())
+          .filter(Boolean);
+      }
+
+      this.profile.experience.push(newExp);
+      this.isEditingExperience = true;
     },
     removeExperience(index) {
-      this.profile.experience.splice(index, 1)
+      const removed = this.profile.experience[index];
+      if (removed && removed.userId) {
+        this.deletedExp.push({
+          ...removed,
+          action: 'delete'
+        });
+      }
+      this.profile.experience.splice(index, 1);
     },
     toggleExperienceEdit() {
       this.isEditingExperience = !this.isEditingExperience
@@ -639,21 +668,15 @@ export default {
           linkedinUrl: this.profile.linkedinUrl,
           bio: this.profile.bio,
           profileImageUrl: this.profile.avatar,
-          educations: this.profile.education.map(e => ({
-            university: e.university,
-            degree: e.degree,
-            major: e.major,
-            startYear: toIntOrNull(e.startYear),
-            endYear: toIntOrNull(e.endYear),
-            logo: e.logo
+          educations: [...this.profile.education, ...this.deletedEdu].map(edu => ({
+            ...edu,
+            startYear: toIntOrNull(edu.startYear),
+            endYear: toIntOrNull(edu.endYear)
           })),
-          experience: this.profile.experience.map(x => ({
-            company: x.company,
-            position: x.position,
-            startYear: toIntOrNull(x.startYear),
-            endYear: toIntOrNull(x.endYear),
-            expertise: x.skills,
-            logo: x.logo || null
+          experience: [...this.profile.experience, ...this.deletedExp].map(exp => ({
+            ...exp,
+            startYear: toIntOrNull(exp.startYear),
+            endYear: toIntOrNull(exp.endYear)
           }))
         }
         
