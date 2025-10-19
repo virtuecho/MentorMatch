@@ -76,7 +76,7 @@ exports.searchMentors = async (req, res) => {
         // Fallback: latest education
         position = 'student';
         company = education.university || null;
-        skill = education.major || null;
+        skill = null;
       } else {
         // No experience or education
         position = null;
