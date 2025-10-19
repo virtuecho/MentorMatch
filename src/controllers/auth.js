@@ -3,6 +3,14 @@ const bcrypt = require('bcrypt');
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
+// Default avatar fallback
+const DEFAULT_AVATAR = 'https://ui-avatars.com/api/?name=User&background=0D8ABC&color=fff';
+
+// Helper to ensure avatar fallback
+function ensureAvatar(profileImageUrl) {
+  return profileImageUrl || DEFAULT_AVATAR;
+}
+
 exports.register = async (req, res) => {
   const { fullName, email, password, role } = req.body;
   const normalizedEmail = email ? email.trim().toLowerCase() : '';
@@ -110,10 +118,7 @@ exports.getProfile = async (req, res) => {
   try {
     const user = await prisma.user.findUnique({
       where: { id: req.user.id },
-      select: {
-        id: true,
-        email: true,
-        role: true,
+      include: {
         profile: true
       }
     });
@@ -122,7 +127,18 @@ exports.getProfile = async (req, res) => {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    res.json(user);
+    const profile = user.profile || {};
+    const safeProfile = {
+      ...profile,
+      profileImageUrl: ensureAvatar(profile.profileImageUrl)
+    };
+
+    res.json({
+      id: user.id,
+      email: user.email,
+      role: user.role,
+      profile: safeProfile
+    });
   } catch (err) {
     console.error('Get profile error:', err);
     res.status(500).json({ error: 'Could not fetch profile' });
@@ -162,14 +178,15 @@ exports.getMentorPublicProfile = async (req, res) => {
     }
 
     // Formatted
+    const profile = mentor.profile || {};
     const publicProfile = {
       id: mentor.id,
-      fullName: mentor.profile?.fullName,
-      profileImageUrl: mentor.profile?.profileImageUrl,
-      bio: mentor.profile?.bio,
-      location: mentor.profile?.location,
-      linkedinUrl: mentor.profile?.linkedinUrl,
-      websiteUrl: mentor.profile?.websiteUrl,
+      fullName: profile.fullName,
+      profileImageUrl: ensureAvatar(profile.profileImageUrl),
+      bio: profile.bio,
+      location: profile.location,
+      linkedinUrl: profile.linkedinUrl,
+      websiteUrl: profile.websiteUrl,
       skills: mentor.mentorSkills.map(skill => skill.skillName)
     };
 
@@ -223,7 +240,13 @@ exports.updateProfile = async (req, res) => {
       await updateExperiences(userId, req.body.experience);
     }
 
-    res.json({ message: 'Profile updated', profile: updatedProfile });
+    // Ensure avatar fallback in response
+    const safeProfile = {
+      ...updatedProfile,
+      profileImageUrl: ensureAvatar(updatedProfile.profileImageUrl)
+    };
+
+    res.json({ message: 'Profile updated', profile: safeProfile });
   } catch (err) {
     if (err.code === 'P2025') {
       return res.status(404).json({ error: 'Profile not found' });
