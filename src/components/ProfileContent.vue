@@ -205,7 +205,7 @@
                     <h4 class="university-name">{{ education.university }}</h4>
                     <p class="degree-info">{{ education.degree }}</p>
                     <p class="major-info" v-if="education.major">{{ education.major }}</p>
-                    <p class="education-period">{{ education.period }}</p>
+                    <p class="education-period">{{ formatYearRange(education.startYear, education.endYear) }}</p>
                   </div>
                 </div>
 
@@ -243,13 +243,22 @@
                   />
                 </div>
                 <div class="form-field">
-                  <label class="field-label">Period</label>
-                  <input 
-                    type="text" 
-                    v-model="education.period"
+                  <label class="field-label">Start Year</label>
+                  <input
+                    type="text"
+                    v-model="education.startYear"
                     class="form-input"
-                    :placeholder="education.isNew ? 'StartYear - EndYear (Leave blank if ongoing)' : 'Feb 2022 - Nov 2025'"
-                    @input="education.isNew = false"
+                    placeholder="e.g., 2022"
+                    :disabled="!isEditMode"
+                  />
+                </div>
+                <div class="form-field">
+                  <label class="field-label">End Year</label>
+                  <input
+                    type="text"
+                    v-model="education.endYear"
+                    class="form-input"
+                    placeholder="Leave blank if ongoing"
                     :disabled="!isEditMode"
                   />
                 </div>
@@ -290,7 +299,7 @@
                   <div class="experience-info">
                     <h4 class="company-name">{{ experience.company }}</h4>
                     <p class="position-info">{{ experience.position }}</p>
-                    <p class="experience-period">{{ experience.period }}</p>
+                    <p class="experience-period">{{ formatYearRange(experience.startYear, experience.endYear) }}</p>
                   </div>
                 </div>
                 <div v-if="experience.skills && experience.skills.length > 0" class="experience-skills">
@@ -323,12 +332,22 @@
                   />
                 </div>
                 <div class="form-field">
-                  <label class="field-label">Period</label>
+                  <label class="field-label">Start Year</label>
                   <input 
                     type="text" 
-                    v-model="experience.period"
+                    v-model="experience.startYear"
                     class="form-input"
-                    placeholder="StartYear - EndYear (Leave blank if ongoing)"
+                    placeholder="e.g., 2023"
+                    :disabled="!isEditMode"
+                  />
+                </div>
+                <div class="form-field">
+                  <label class="field-label">End Year</label>
+                  <input 
+                    type="text" 
+                    v-model="experience.endYear"
+                    class="form-input"
+                    placeholder="Leave blank if ongoing"
                     :disabled="!isEditMode"
                   />
                 </div>
@@ -396,7 +415,9 @@ export default {
           {
             university: 'University of Melbourne',
             degree: 'Bachelor of Science, Computer Software System',
-            period: 'Feb 2022 - Nov 2025',
+            major: '',
+            startYear: 2022,
+            endYear: 2025,
             logo: null
           }
         ],
@@ -404,7 +425,8 @@ export default {
           {
             company: 'Tech Solutions Inc.',
             position: 'Software Engineer',
-            period: 'Jan 2023 - Present',
+            startYear: 2023,
+            endYear: null,
             skills: ['JavaScript', 'React', 'Node.js'],
             skillsString: 'JavaScript, React, Node.js',
             logo: null
@@ -491,18 +513,22 @@ export default {
           this.profile.linkedinUrl = userData.profile.linkedinUrl || this.profile.linkedinUrl
           this.profile.bio = userData.profile.bio || this.profile.bio
           this.profile.avatar = userData.profile.profileImageUrl || this.profile.avatar
-          this.profile.education = userData.profile.educations.map(edu => ({
-            ...edu,
-            desc: `${edu.degree}, ${edu.major}`,
-            period: `${edu.startYear} - ${edu.endYear}`,
-            action: null
+          this.profile.education = (userData.profile.educations || []).map(edu => ({
+            university: edu.university,
+            degree: edu.degree,
+            major: edu.major,
+            startYear: edu.startYear,
+            endYear: edu.endYear ?? null,
+            logo: edu.logo || null
           }))
-          this.profile.experience = userData.profile.experience.map(exp => ({
-            ...exp,
-            skills: exp.expertise,
-            skillsString: exp.expertise.join(', '),
-            period: edu.endYear != null ? `${edu.startYear} - ${edu.endYear}` : `${edu.startYear} - Present`,
-            action: null
+          this.profile.experience = (userData.profile.experience || []).map(exp => ({
+            company: exp.company,
+            position: exp.position,
+            startYear: exp.startYear,
+            endYear: exp.endYear ?? null,
+            skills: exp.expertise || [],
+            skillsString: (exp.expertise || []).join(', '),
+            logo: exp.logo || null
           }))
         }
         
@@ -534,9 +560,9 @@ export default {
         university: '',
         degree: '',
         major: '',
-        period: '',
-        logo: null,
-        isNew: true
+        startYear: '',
+        endYear: '',
+        logo: null
       })
       this.isEditingEducation = true
     },
@@ -557,7 +583,8 @@ export default {
       this.profile.experience.push({
         company: '',
         position: '',
-        period: '',
+        startYear: '',
+        endYear: '',
         skills: [],
         skillsString: '',
         logo: null
@@ -582,6 +609,12 @@ export default {
       this.profile.experience[index].skills = skills
       this.profile.experience[index].skillsString = skillsString
     },
+    formatYearRange(startYear, endYear) {
+      const s = String(startYear ?? '').trim()
+      const e = String(endYear ?? '').trim()
+      if (!s) return ''
+      return e ? `${s} - ${e}` : `${s} - Present`
+    },
     enableEditMode() {
       this.isEditMode = true
       // Store current profile state for potential cancellation
@@ -597,6 +630,11 @@ export default {
       
       try {
         // Prepare payload for API
+        const toIntOrNull = (val) => {
+          if (val === null || val === undefined || val === '') return null
+          const n = parseInt(val, 10)
+          return Number.isFinite(n) ? n : null
+        }
         const payload = {
           fullName: this.profile.fullName,
           location: this.profile.location,
@@ -606,8 +644,22 @@ export default {
           linkedinUrl: this.profile.linkedinUrl,
           bio: this.profile.bio,
           profileImageUrl: this.profile.avatar,
-          educations: this.profile.education,
-          experience: this.profile.experience
+          educations: this.profile.education.map(e => ({
+            university: e.university,
+            degree: e.degree,
+            major: e.major,
+            startYear: toIntOrNull(e.startYear),
+            endYear: toIntOrNull(e.endYear),
+            logo: e.logo
+          })),
+          experience: this.profile.experience.map(x => ({
+            company: x.company,
+            position: x.position,
+            startYear: toIntOrNull(x.startYear),
+            endYear: toIntOrNull(x.endYear),
+            expertise: x.skills,
+            logo: x.logo || null
+          }))
         }
         
         // Call updateProfile API and wait for backend confirmation
