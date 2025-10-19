@@ -662,9 +662,8 @@ export default {
         const payload = {
           fullName: this.profile.fullName,
           location: this.profile.location,
-          socialMedia: this.profile.socialMedia,
-          instagramUrl: this.profile.instagramUrl,
-          facebookUrl: this.profile.facebookUrl,
+          socialMedia: this.profile.instagramUrl,
+          websiteUrl: this.profile.facebookUrl,
           linkedinUrl: this.profile.linkedinUrl,
           bio: this.profile.bio,
           profileImageUrl: this.profile.avatar,
