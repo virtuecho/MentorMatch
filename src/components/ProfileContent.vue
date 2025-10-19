@@ -58,7 +58,7 @@
                 type="text" 
                 v-model="profile.location"
                 class="form-input"
-                placeholder="Melbourne / AEST"
+                placeholder="No location to show"
                 :disabled="!isEditMode"
               />
             </div>
@@ -204,7 +204,7 @@
                   <img :src="education.logo || '/default-university-logo.svg'" alt="University Logo" class="university-logo" />
                   <div class="education-info">
                     <h4 class="university-name">{{ education.university }}</h4>
-                    <p class="degree-info">{{ education.degree }}</p>
+                    <p class="degree-info">{{ education.desc }}</p>
                     <p class="education-period">{{ education.period }}</p>
                   </div>
                 </div>
@@ -374,9 +374,9 @@ export default {
       isEditMode: false,
       profile: {
         fullName: '',
-        location: 'Melbourne / AEST',
-        phone: '000-000-0000',
-        socialMedia: '@',
+        location: 'No location to show',
+        phone: '',
+        socialMedia: '',
         instagramUrl: '',
         facebookUrl: '',
         linkedinUrl: '',
@@ -474,13 +474,24 @@ export default {
         // Load other profile data if available
         if (userData.profile) {
           this.profile.location = userData.profile.location || this.profile.location
-          this.profile.phone = userData.profile.phone || this.profile.phone
-          this.profile.socialMedia = userData.profile.socialMedia || this.profile.socialMedia
-          this.profile.instagramUrl = userData.profile.instagramUrl || this.profile.instagramUrl
-          this.profile.facebookUrl = userData.profile.facebookUrl || this.profile.facebookUrl
+          this.profile.instagramUrl = userData.profile.socialMedia || this.profile.socialMedia
+          this.profile.facebookUrl = userData.profile.websiteUrl || this.profile.websiteUrl
           this.profile.linkedinUrl = userData.profile.linkedinUrl || this.profile.linkedinUrl
           this.profile.bio = userData.profile.bio || this.profile.bio
           this.profile.avatar = userData.profile.profileImageUrl || this.profile.avatar
+          this.profile.education = userData.profile.educations.map(edu => ({
+            ...edu,
+            desc: `${edu.degree}, ${edu.major}`,
+            period: `${edu.startYear} - ${edu.endYear}`,
+            action: null
+          }))
+          this.profile.experience = userData.profile.experience.map(exp => ({
+            ...exp,
+            skills: exp.expertise,
+            skillsString: exp.expertise.join(', '),
+            period: edu.endYear != null ? `${edu.startYear} - ${edu.endYear}` : `${edu.startYear} - Present`,
+            action: null
+          }))
         }
         
       } catch (error) {
@@ -561,13 +572,14 @@ export default {
         const payload = {
           fullName: this.profile.fullName,
           location: this.profile.location,
-          phone: this.profile.phone,
           socialMedia: this.profile.socialMedia,
           instagramUrl: this.profile.instagramUrl,
           facebookUrl: this.profile.facebookUrl,
           linkedinUrl: this.profile.linkedinUrl,
           bio: this.profile.bio,
-          profileImageUrl: this.profile.avatar
+          profileImageUrl: this.profile.avatar,
+          educations: this.profile.education,
+          experience: this.profile.experience
         }
         
         // Call updateProfile API and wait for backend confirmation
