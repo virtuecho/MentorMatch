@@ -339,8 +339,8 @@ export default {
           degree: `${education?.[0]?.degree} in ${education?.[0]?.major}`,
           university: education?.[0]?.university,
           eduPeriod: `${education?.[0]?.startYear} - ${education?.[0]?.endYear}`,
-          instagramUrl: info.profile?.instagramUrl || '',
-          facebookUrl: info.profile?.facebookUrl || '',
+          instagramUrl: info.profile?.socialMedia || '',
+          facebookUrl: info.profile?.websiteUrl || '',
           linkedinUrl: info.profile?.linkedinUrl || '',
           experience: experience?.[0] ? true : false,
           education: education?.[0] ? true : false
