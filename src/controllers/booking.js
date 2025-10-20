@@ -64,8 +64,8 @@ exports.cancelBooking = async (req, res) => {
       where: { id: bookingId }
     });
 
-    if (!booking || booking.menteeId !== userId) {
-      return res.status(403).json({ error: 'Unauthorized or booking not found' });
+    if (!booking) {
+      return res.status(403).json({ error: 'Booking not found' });
     }
 
     const cancelled = await prisma.booking.update({
