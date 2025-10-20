@@ -150,10 +150,38 @@ exports.deleteAvailability = async (req, res) => {
       return res.status(404).json({ error: 'Availability slot not found' });
     }
 
-    await prisma.availabilitySlot.delete({
-      where: { id: parseInt(slotId) }
+    // Find bookings tied to the slot
+    const bookings = await prisma.booking.findMany({
+      where: { availabilitySlotId: parseInt(slotId) },
+      select: { id: true, status: true }
     });
 
+    // If any booking is accepted, block deletion
+    const hasAccepted = bookings.some(b => b.status === 'accepted');
+    if (hasAccepted) {
+      return res.status(400).json({
+        error: 'Cannot delete slot while there is an accepted booking. Please cancel the accepted booking first.'
+      });
+    }
+
+    // Collect ids of bookings that should be removed (pending or rejected or any non-accepted)
+    const bookingIdsToDelete = bookings
+      .filter(b => b.status !== 'accepted')
+      .map(b => b.id);
+
+    // Transaction: delete bookings (if any) then delete slot
+    await prisma.$transaction(async tx => {
+      if (bookingIdsToDelete.length) {
+        await tx.booking.deleteMany({
+          where: { id: { in: bookingIdsToDelete } }
+        });
+      }
+
+      await tx.availabilitySlot.delete({
+        where: { id: parseInt(slotId) }
+      });
+    });
+    
     res.json({ message: 'Availability slot deleted successfully' });
   } catch (err) {
     console.error('Delete availability error:', err);

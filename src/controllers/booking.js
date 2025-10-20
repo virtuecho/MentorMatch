@@ -54,7 +54,7 @@ exports.createBooking = async (req, res) => {
   }
 };
 
-// This function can be accessed by mentee to cancel their own bookings on at a time
+// This function is to cancel booking record one at a time
 exports.cancelBooking = async (req, res) => {
   try {
     const { bookingId } = req.body;
