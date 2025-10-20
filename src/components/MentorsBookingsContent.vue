@@ -52,7 +52,7 @@
               Reject
             </button>
           </template>
-          <button v-if="booking.status === 'Accepted'" class="cancel-btn" @click="showCancelConfirmation(booking)">
+          <button v-if="booking.status === 'Accepted'" class="cancel-btn" @click="showBookingCancelConfirmation(booking)">
             <span>Cancel</span>
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
               <path d="M12 4L4 12M4 4L12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -72,21 +72,40 @@
     <div v-if="showCancelModal" class="modal-overlay" @click="closeCancelModal">
       <div class="modal-content" @click.stop>
         <div class="modal-header">
-           <h3>Cancel Booking</h3>
-         </div>
-         <div class="modal-body">
-           <p>Are you sure you want to cancel your booking with <strong>{{ bookingToCancel?.mentee }}</strong>?</p>
-           <p class="modal-time">{{ bookingToCancel?.time }}</p>
-           <p class="modal-warning">This action cannot be undone.</p>
-         </div>
-         <div class="modal-actions">
-           <button class="modal-btn cancel-modal-btn" @click="closeCancelModal">
-             Cancel
-           </button>
-           <button class="modal-btn confirm-modal-btn" @click="confirmCancelBooking">
-             Confirm Cancel
-           </button>
-         </div>
+          <p v-if="cancelMode === 'b'">
+            <h3>Cancel Booking</h3>
+          </p>
+          <p v-else>
+            <h3>Delete Slot</h3>
+          </p>
+        </div>
+        <div class="modal-body">
+          <template v-if="cancelMode === 'b'">
+            <p>Are you sure you want to cancel your booking with <strong>{{ bookingToCancel?.mentee }}</strong>?</p>
+            <p class="modal-time">{{ bookingToCancel?.time }}</p>
+            <p class="modal-warning">This action cannot be undone.</p>
+          </template>
+          <template v-else>
+            <p>Are you sure you want to delete this slot</p>
+            <p class="modal-time">{{ slotToCancel?.time }}</p>
+            <p class="modal-warning">This action cannot be undone.</p>
+          </template>
+        </div>
+        <div class="modal-actions">
+          <button class="modal-btn cancel-modal-btn" @click="closeCancelModal">
+            Cancel
+          </button>
+          <p v-if="cancelMode === 'b'">
+            <button class="modal-btn confirm-modal-btn" @click="confirmCancelBooking">
+              Confirm
+            </button>
+          </p>
+          <p v-else>
+            <button class="modal-btn confirm-modal-btn" @click="confirmCancelSlot">
+              Confirm
+            </button>
+          </p>
+        </div>
       </div>
     </div>
   
@@ -117,20 +136,20 @@
       <!-- Display the meetings created by the mentor -->
       <div class="my-available-meetings-list">
         <div 
-          v-for="booking in bookings" 
-          :key="booking.mentorId"
+          v-for="slot in slots" 
+          :key="slot.id"
           class="meeting-card"
         >
         <div class="meeting-content">
           <div class="meeting-info">
             <div class="meeting-details">
-              <h3 class="meeting-time">{{ booking.time }}</h3>
-              <p class="meeting-location">Location: {{ booking.address }}</p>
-              <p class="meeting-duration">Duration: {{ booking.duration }}</p>
+              <h3 class="meeting-time">{{ slot.time }}</h3>
+              <p class="meeting-location">Location: {{ slot.address }}</p>
+              <p class="meeting-duration">Duration: {{ slot.duration }}</p>
             </div>
           </div>
           <div class="meeting-actions">
-            <button class="cancel-btn" @click="showCancelConfirmation(booking)">
+            <button class="cancel-btn" @click="showSlotCancelConfirmation(slot)">
               <span>Cancel</span>
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
                 <path d="M12 4L4 12M4 4L12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -138,16 +157,18 @@
             </button>
           </div>
         </div>
-      </div>
-      
+      </div>  
     </div>
+
+
   </div>
   </div>
 </template>
 
 <script>
-import CreateMeetingModal from './CreateMeetingModal.vue'
+import CreateMeetingModal from './CreateMeetingModal.vue';
 import { getMentorBookings, respondToBooking, cancelBooking } from '@/services/booking';
+import { getMyAvailability, deleteAvailability } from '@/services/availability';
 
 export default {
   name: 'MentorsBookingsContent',
@@ -157,7 +178,7 @@ export default {
   props: {
     addMeeting: {
       type: Function,
-      required: true
+      required: false
     }
   },
   data() {
@@ -166,6 +187,8 @@ export default {
       showCancelModal: false,
       showCreateModal: false,
       bookingToCancel: null,
+      slotToCancel: null,
+      cancelMode: null,
       isLoading: false,
       errorMessage: '',
       filterTabs: [
@@ -175,7 +198,8 @@ export default {
         { id: 'rejected', label: 'Rejected' },
         { id: 'completed', label: 'Completed' },
       ],
-      bookings: []
+      bookings: [],
+      slots: []
     }
   },
   computed: {
@@ -190,7 +214,7 @@ export default {
     }
   },
   methods: {
-    async fetchBookings() {
+    async fetchData() {
       this.isLoading = true
       this.errorMessage = ''
       try {
@@ -198,20 +222,39 @@ export default {
         this.bookings = res.data.map(b => ({
           id: b.id,
           status: b.status.charAt(0).toUpperCase() + b.status.slice(1), // capitalize
+          topic: b.topic,
+          description: b.description || 'No additional note',
           time: this.formatSlotTime(b.slot),
-          duration: `${b.duration} minutes`,
-          address: b.address || 'No location info',
+          duration: `${b.slot?.durationMins} minutes`,
+          address: b.slot?.address || 'No location info',
           mentee: b.counterpart?.fullName || 'Unknown mentee',
           menteeAvatar: b.counterpart?.profileImageUrl || '/default-avatar.jpg'
         }))
       } catch (err) {
         console.error('Failed to fetch bookings:', err)
-        this.errorMessage = 'Failed to load your bookings.'
+        this.errorMessage = 'Failed to load bookings.'
+      } finally {
+        this.isLoading = false
+      }
+
+      try {
+        const slotRes = await getMyAvailability()
+        this.slots = slotRes.data.map(s => ({
+          id: s.id,
+          time: this.formatSlotTime(s),
+          duration: `${s.durationMins} minutes`,
+          city: s.city,
+          address: s.address,
+          note: s.note,
+          isBooked: s.isBooked
+        }))
+      } catch (err) {
+        console.error('Failed to fetch slots:', err)
+        this.errorMessage = 'Failed to load slots.'
       } finally {
         this.isLoading = false
       }
     },
-
     formatSlotTime(slot) {
       if (!slot) return 'No slot info'
       const start = new Date(slot.startTime)
@@ -225,7 +268,6 @@ export default {
       }
       return `${start.toLocaleString('en-AU', options)} • ${slot.location || ''}`
     },
-
     setActiveFilter(filterId) {
       this.activeFilter = filterId
     },
@@ -249,13 +291,21 @@ export default {
       this.addMeeting(meetingData)
 
     },
-    showCancelConfirmation(booking) {
+    showBookingCancelConfirmation(booking) {
       this.bookingToCancel = booking
       this.showCancelModal = true
+      this.cancelMode = 'b'
+    },
+    showSlotCancelConfirmation(slot) {
+      this.slotToCancel = slot
+      this.showCancelModal = true
+      this.cancelMode = 's'
     },
     closeCancelModal() {
       this.showCancelModal = false
       this.bookingToCancel = null
+      this.slotToCancel = null
+      this.cancelMode = null
     },
     async confirmCancelBooking() {
       if (this.bookingToCancel) {
@@ -264,9 +314,35 @@ export default {
           this.bookingToCancel.status = 'Cancelled'
           console.log('Booking cancelled:', this.bookingToCancel)
           this.closeCancelModal()
+          window.location.reload();
         } catch (err) {
           console.error('Failed to cancel booking:', err)
           alert('Something went wrong while cancelling the booking.')
+        }
+      }
+    },
+    async confirmCancelSlot() {
+      if (this.slotToCancel) {
+        try {
+          await deleteAvailability({ slotId: this.slotToCancel.id })
+          console.log('Slot deleted:', this.slotToCancel)
+          this.closeCancelModal()
+          window.location.reload();
+        } catch (err) {
+          console.error('Failed to delete slot:', err);
+
+          // Axios-style response body check
+          const apiError =
+            err?.response?.data?.error ||
+            err?.response?.data?.message ||
+            err?.message ||
+            '';
+
+          if (typeof apiError === 'string' && apiError.includes('Cannot delete slot while there is an accepted booking')) {
+            alert('Cannot delete this slot because there is an accepted booking. Please cancel the accepted booking first.');
+          } else {
+            alert('Something went wrong while deleting the slot.');
+          }
         }
       }
     },
@@ -275,6 +351,7 @@ export default {
         const res = await respondToBooking({ bookingId: booking.id, response: 'accepted' })
         booking.status = 'Accepted'
         console.log('Booking accepted:', res.data)
+        window.location.reload();
       } catch (err) {
         console.error('Failed to accept booking:', err)
         alert('Something went wrong while accepting the booking.')
@@ -285,6 +362,7 @@ export default {
         const res = await respondToBooking({ bookingId: booking.id, response: 'rejected' })
         booking.status = 'Rejected'
         console.log('Booking rejected:', res.data)
+        window.location.reload();
       } catch (err) {
         console.error('Failed to reject booking:', err)
         alert('Something went wrong while rejecting the booking.')
@@ -293,7 +371,7 @@ export default {
   },
 
   mounted() {
-    this.fetchBookings()
+    this.fetchData()
   }
 }
 </script>
@@ -562,14 +640,14 @@ export default {
 .meeting-location {
   font-size: 14px;
   font-weight: 400;
-  color: #1a1a1a;
+  color: #666666;
   margin: 0;
 }
 
 .meeting-duration {
   font-size: 14px;
   font-weight: 400;
-  color: #1a1a1a;
+  color: #666666;
   margin: 0;
 }
 

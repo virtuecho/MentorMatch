@@ -659,6 +659,19 @@ export default {
           const n = parseInt(val, 10)
           return Number.isFinite(n) ? n : null
         }
+        const avatarUrlFor = (fullName) => {
+          if (!fullName) return '/default-avatar.svg';
+
+          const parts = String(fullName).trim().split(/\s+/).filter(Boolean);
+          if (!parts.length) return '/default-avatar.svg';
+
+          const initials =
+            parts.length === 1
+              ? parts[0].charAt(0).toUpperCase()
+              : (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
+
+          return `https://ui-avatars.com/api/?name=${initials}&background=0D8ABC&color=fff`;
+        }
         const payload = {
           fullName: this.profile.fullName,
           location: this.profile.location,
@@ -666,7 +679,7 @@ export default {
           websiteUrl: this.profile.facebookUrl,
           linkedinUrl: this.profile.linkedinUrl,
           bio: this.profile.bio,
-          profileImageUrl: this.profile.avatar,
+          profileImageUrl: avatarUrlFor(this.profile.fullName),
           educations: [...this.profile.education, ...this.deletedEdu].map(edu => ({
             ...edu,
             startYear: toIntOrNull(edu.startYear),
