@@ -6,19 +6,7 @@
         <h1 class="page-title">Mentor's Bookings</h1>
         <p class="page-description">Manage your upcoming and past sessions with mentees.</p>
       </div>
-      <div class="actions-section">
-        <button class="create-meeting-btn" @click="createNewMeeting">
-          + Create new meeting
-        </button>
-      </div>
     </div>
-
-    <!-- Create Meeting Modal -->
-    <CreateMeetingModal 
-      v-if="showCreateModal" 
-      @close="closeCreateModal" 
-      @meeting-created="handleMeetingCreated"
-    />
 
     <!-- Filter Tabs -->
     <div class="filter-tabs">
@@ -34,46 +22,46 @@
 
     <!-- Bookings List -->
     <div class="bookings-list">
-        <div 
-          v-for="booking in filteredBookings" 
-          :key="booking.id"
-          class="booking-card"
-        >
-        <div class="booking-content">
-          <div class="booking-info">
-            <div class="status-badge" :class="booking.status.toLowerCase()">
-              {{ booking.status }}
-            </div>
-            <div class="booking-details">
-              <h3 class="booking-time">{{ booking.time }}</h3>
-              <p class="mentor-info">Mentee: {{ booking.mentee }}</p>
-            </div>
+      <div 
+        v-for="booking in filteredBookings" 
+        :key="booking.id"
+        class="booking-card"
+      >
+      <div class="booking-content">
+        <div class="booking-info">
+          <div class="status-badge" :class="booking.status.toLowerCase()">
+            {{ booking.status }}
           </div>
-          <div class="booking-actions" v-if="booking.status === 'Accepted' || booking.status === 'Pending'">
-            <template v-if="booking.status === 'Pending'">
-              <button 
-                class="accept-btn"
-                @click="acceptBooking(booking)"
-              >
-                Accept
-              </button>
-              <button 
-                class="reject-btn"
-                @click="rejectBooking(booking)"
-              >
-                Reject
-              </button>
-            </template>
-            <button v-if="booking.status === 'Accepted'" class="cancel-btn" @click="showCancelConfirmation(booking)">
-              <span>Cancel</span>
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                <path d="M12 4L4 12M4 4L12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
+          <div class="booking-details">
+            <h3 class="booking-time">{{ booking.time }}</h3>
+            <p class="mentor-info">Mentee: {{ booking.mentee }}</p>
+          </div>
+        </div>
+        <div class="booking-actions" v-if="booking.status === 'Accepted' || booking.status === 'Pending'">
+          <template v-if="booking.status === 'Pending'">
+            <button 
+              class="accept-btn"
+              @click="acceptBooking(booking)"
+            >
+              Accept
             </button>
-          </div>
+            <button 
+              class="reject-btn"
+              @click="rejectBooking(booking)"
+            >
+              Reject
+            </button>
+          </template>
+          <button v-if="booking.status === 'Accepted'" class="cancel-btn" @click="showCancelConfirmation(booking)">
+            <span>Cancel</span>
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <path d="M12 4L4 12M4 4L12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
         </div>
-        </div>
-     </div>
+      </div>
+    </div>
+  </div>
 
     <!-- Empty State -->
     <div v-if="filteredBookings.length === 0" class="empty-state">
@@ -101,6 +89,59 @@
          </div>
       </div>
     </div>
+  
+
+    <!-- All created available slots -->
+
+    <div class="my-available-slots-section">
+      <!-- Header Section -->
+      <div class="header-section">
+        <div class="title-section">
+          <h1 class="page-title">My Available Slots</h1>
+          <p class="page-description">View and manage all available meetings.</p>
+        </div>
+        <div class="actions-section">
+          <button class="create-meeting-btn" @click="createNewMeeting">
+            + Create new meeting
+          </button>
+        </div>
+      </div>
+
+      <!-- Create Meeting Modal -->
+      <CreateMeetingModal 
+        v-if="showCreateModal" 
+        @close="closeCreateModal" 
+        @meeting-created="handleMeetingCreated"
+      />
+
+      <!-- Display the meetings created by the mentor -->
+      <div class="my-available-meetings-list">
+        <div 
+          v-for="booking in bookings" 
+          :key="booking.mentorId"
+          class="meeting-card"
+        >
+        <div class="meeting-content">
+          <div class="meeting-info">
+            <div class="meeting-details">
+              <h3 class="meeting-time">{{ booking.time }}</h3>
+              <p class="meeting-location">Location: {{ booking.address }}</p>
+              <p class="meeting-duration">Duration: {{ booking.duration }}</p>
+            </div>
+          </div>
+          <div class="meeting-actions">
+            <button class="cancel-btn" @click="showCancelConfirmation(booking)">
+              <span>Cancel</span>
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                <path d="M12 4L4 12M4 4L12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+      
+    </div>
+  </div>
   </div>
 </template>
 
@@ -112,6 +153,12 @@ export default {
   name: 'MentorsBookingsContent',
   components: {
     CreateMeetingModal
+  },
+  props: {
+    addMeeting: {
+      type: Function,
+      required: true
+    }
   },
   data() {
     return {
@@ -127,7 +174,6 @@ export default {
         { id: 'accepted', label: 'Accepted' },
         { id: 'rejected', label: 'Rejected' },
         { id: 'completed', label: 'Completed' },
-        { id: 'published', label: 'Published' }
       ],
       bookings: []
     }
@@ -135,9 +181,7 @@ export default {
   computed: {
     filteredBookings() {
       if (this.activeFilter === 'all') {
-        return this.bookings.filter(booking =>
-          booking.status.toLowerCase() !== 'published'
-          )
+        return this.bookings
       } else {
         return this.bookings.filter(booking => 
           booking.status.toLowerCase() === this.activeFilter
@@ -155,6 +199,8 @@ export default {
           id: b.id,
           status: b.status.charAt(0).toUpperCase() + b.status.slice(1), // capitalize
           time: this.formatSlotTime(b.slot),
+          duration: `${b.duration} minutes`,
+          address: b.address || 'No location info',
           mentee: b.counterpart?.fullName || 'Unknown mentee',
           menteeAvatar: b.counterpart?.profileImageUrl || '/default-avatar.jpg'
         }))
@@ -190,16 +236,18 @@ export default {
       this.showCreateModal = false
     },
     handleMeetingCreated(meetingData) {
-      // Add the new meeting to bookings list
-      const newBooking = {
-        id: this.bookings.length + 1,
-        status: 'Published',
-        time: `${meetingData.date}, ${meetingData.time} • ${meetingData.location}`,
-        mentee: meetingData.mentee || 'New Meeting',
-        menteeAvatar: meetingData.menteeAvatar || '/default-avatar.jpg'
+      const newMeeting = {
+        id: this.meetings.length + 1,
+        status: 'Pending',
+        time: `${meetingData.date}, ${meetingData.time}`,
+        duration: `${meetingData.durationMins} minutes`,
+        address: `${meetingData.address}`
       }
-      this.bookings.unshift(newBooking)
-      this.closeCreateModal()
+
+      // Add the new meeting to list
+      this.bookings.unshift(newMeeting)
+      this.addMeeting(meetingData)
+
     },
     showCancelConfirmation(booking) {
       this.bookingToCancel = booking
@@ -380,7 +428,24 @@ export default {
   gap: 20px;
 }
 
+.my-available-meetings-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
 .booking-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24px;
+  background-color: #f8f9fa;
+  border-radius: 20px;
+  border: 1px solid #e9ecef;
+  transition: all 0.2s ease;
+}
+
+.meeting-card {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -396,6 +461,11 @@ export default {
   transform: translateY(-2px);
 }
 
+.meeting-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+
 .booking-content {
   display: flex;
   align-items: center;
@@ -404,7 +474,21 @@ export default {
   justify-content: space-between;
 }
 
+.meeting-content {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex: 1;
+  justify-content: space-between;
+}
+
 .booking-info {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.meeting-info {
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -455,9 +539,36 @@ export default {
   gap: 4px;
 }
 
+.meeting-details {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
 .booking-time {
   font-size: 16px;
   font-weight: 600;
+  color: #1a1a1a;
+  margin: 0;
+}
+
+.meeting-time {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin: 0;
+}
+
+.meeting-location {
+  font-size: 14px;
+  font-weight: 400;
+  color: #1a1a1a;
+  margin: 0;
+}
+
+.meeting-duration {
+  font-size: 14px;
+  font-weight: 400;
   color: #1a1a1a;
   margin: 0;
 }
@@ -526,6 +637,9 @@ export default {
   align-items: center;
 }
 
+.my-available-slots-section {
+  margin-top: 60px;
+}
 
 
 /* Empty state */
