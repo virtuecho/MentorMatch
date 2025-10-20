@@ -3,7 +3,7 @@
     <!-- Header Section -->
     <div class="header-section">
       <div class="title-section">
-        <h1 class="page-title">Mentor's Bookings</h1>
+        <h1 class="page-title">My Sessions</h1>
         <p class="page-description">Manage your upcoming and past sessions with mentees.</p>
       </div>
     </div>
@@ -72,12 +72,12 @@
     <div v-if="showCancelModal" class="modal-overlay" @click="closeCancelModal">
       <div class="modal-content" @click.stop>
         <div class="modal-header">
-          <p v-if="cancelMode === 'b'">
+          <template v-if="cancelMode === 'b'">
             <h3>Cancel Booking</h3>
-          </p>
-          <p v-else>
+          </template>
+          <template v-else>
             <h3>Delete Slot</h3>
-          </p>
+          </template>
         </div>
         <div class="modal-body">
           <template v-if="cancelMode === 'b'">
@@ -749,6 +749,7 @@ export default {
   width: 100%;
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
   animation: modalSlideIn 0.3s ease-out;
+  text-align: center;
 }
 
 @keyframes modalSlideIn {
@@ -800,7 +801,8 @@ export default {
   padding: 16px 24px 24px;
   display: flex;
   gap: 12px;
-  justify-content: flex-end;
+  justify-content: center;
+  align-items: center;
 }
 
 .modal-btn {
