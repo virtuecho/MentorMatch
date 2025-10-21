@@ -34,7 +34,26 @@
           </div>
           <div class="booking-details">
             <h3 class="booking-time">{{ booking.time }}</h3>
+            <!-- Mentee inline name only (avatar removed) -->
             <p class="mentor-info">Mentee: {{ booking.mentee }}</p>
+
+            <!-- Left-aligned, polished details toggle -->
+            <button 
+              class="details-toggle" 
+              @click="toggleDetails(booking)" 
+              :aria-expanded="booking.showDetails"
+            >
+              <svg class="chevron" width="14" height="14" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              <span class="details-label">{{ booking.showDetails ? 'Hide details' : 'View details' }}</span>
+            </button>
+
+            <!-- Collapsible details -->
+            <div v-if="booking.showDetails" class="booking-extra">
+              <p v-if="booking.topic" class="booking-topic"><strong>Topic:</strong> {{ booking.topic }}</p>
+              <p v-if="booking.description" class="booking-description"><strong>Description:</strong> {{ booking.description }}</p>
+            </div>
           </div>
         </div>
         <div class="booking-actions" v-if="booking.status === 'Accepted' || booking.status === 'Pending'">
@@ -221,14 +240,17 @@ export default {
         const res = await getMentorBookings()
         this.bookings = res.data.map(b => ({
           id: b.id,
-          status: b.status.charAt(0).toUpperCase() + b.status.slice(1), // capitalize
+          status: b.status.charAt(0).toUpperCase() + b.status.slice(1),
           topic: b.topic,
           description: b.description || 'No additional note',
           time: this.formatSlotTime(b.slot),
           duration: `${b.slot?.durationMins} minutes`,
           address: b.slot?.address || 'No location info',
           mentee: b.counterpart?.fullName || 'Unknown mentee',
-          menteeAvatar: b.counterpart?.profileImageUrl || '/default-avatar.jpg'
+          // menteeAvatar retained but not displayed
+          menteeAvatar: b.counterpart?.profileImageUrl || '/default-avatar.jpg',
+          // new flag for collapsible details
+          showDetails: false
         }))
       } catch (err) {
         console.error('Failed to fetch bookings:', err)
@@ -367,6 +389,9 @@ export default {
         console.error('Failed to reject booking:', err)
         alert('Something went wrong while rejecting the booking.')
       }
+    },
+    toggleDetails(booking) {
+      booking.showDetails = !booking.showDetails
     }
   },
 
@@ -917,4 +942,46 @@ export default {
     padding: 12px 16px;
   }
 }
+</style>
+
+<style>
+  .details-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 0;
+    background: transparent;
+    border: none;
+    color: #1f2937;
+    cursor: pointer;
+    text-align: left; /* left aligned */
+    border-radius: 6px;
+  }
+  .details-toggle:hover {
+    color: #2563eb;
+    background: rgba(37, 99, 235, 0.08);
+  }
+  .details-toggle:focus-visible {
+    outline: 2px solid #93c5fd;
+    outline-offset: 2px;
+  }
+  .chevron {
+    transition: transform 0.2s ease;
+  }
+  /* rotate chevron when expanded */
+  [aria-expanded="true"] .chevron {
+    transform: rotate(90deg);
+  }
+  .details-label {
+    font-weight: 500;
+  }
+  .booking-extra {
+    margin-top: 8px;
+  }
+  .booking-topic,
+  .booking-description {
+    color: #374151;
+    margin-top: 4px;
+    line-height: 1.5;
+  }
 </style>
