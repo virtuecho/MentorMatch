@@ -1,7 +1,7 @@
 import API from "./api";
 
 // Function to search for mentors
-export const mentorSearch = ({ skill, location, maxResults = 10 }) => {
+export const mentorSearch = ({ skill, location, maxResults }) => {
     return API.get("/mentor/search", { skill, location, maxResults });
 }
 
