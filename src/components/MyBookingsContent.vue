@@ -119,7 +119,11 @@ export default {
         this.bookings = res.data.map(b => ({
           id: b.id,
           status: b.status.charAt(0).toUpperCase() + b.status.slice(1), // capitalize
+          topic: b.topic,
+          description: b.description || 'No additional note',
           time: this.formatSlotTime(b.slot),
+          duration: `${b.slot?.durationMins} minutes`,
+          address: b.slot?.address || 'No location info',
           mentor: b.counterpart?.fullName || 'Unknown mentor',
           mentorAvatar: b.counterpart?.profileImageUrl || '/default-avatar.jpg'
         }))
