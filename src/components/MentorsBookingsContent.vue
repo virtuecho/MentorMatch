@@ -37,26 +37,12 @@
               <!-- Mentee inline name only (avatar removed) -->
               <p class="mentor-info">
                 Mentee:
-                <button class="mentee-link" @click="openMenteeDetails(booking.counterpart)">
+                <button class="mentee-link" @click="openMenteeDetails(booking)">
                   {{ booking.mentee }}
                 </button>
               </p>
 
-              <button 
-                class="details-toggle" 
-                @click="toggleDetails(booking)" 
-                :aria-expanded="booking.showDetails"
-              >
-                <svg class="chevron" width="14" height="14" viewBox="0 0 24 24" aria-hidden="true">
-                  <path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-                <span class="details-label">{{ booking.showDetails ? 'Hide details' : 'View details' }}</span>
-              </button>
 
-              <div v-if="booking.showDetails" class="booking-extra">
-                <p v-if="booking.topic" class="booking-topic"><strong>Topic:</strong> {{ booking.topic }}</p>
-                <p v-if="booking.description" class="booking-description"><strong>Description:</strong> {{ booking.description }}</p>
-              </div>
             </div>
           </div>
           <div class="booking-actions" v-if="booking.status === 'Accepted' || booking.status === 'Pending'">
@@ -182,14 +168,31 @@
       </div>
     </div>
 
-    <!-- Lightweight mentee info modal -->
+    <!-- Mentee + Booking details modal -->
     <div v-if="showMenteeModal" class="mentee-overlay" @click.self="closeMenteeDetails">
       <div class="mentee-modal" role="dialog" aria-modal="true">
-        <h3 class="mentee-title">{{ menteeDetails?.profile?.fullName || menteeDetails?.fullName || 'Mentee' }}</h3>
-        <p v-if="menteeDetails?.email" class="mentee-field"><strong>Email:</strong> {{ menteeDetails.email }}</p>
-        <p v-if="menteeDetails?.profile?.location" class="mentee-field"><strong>Location:</strong> {{ menteeDetails.profile.location }}</p>
-        <p v-if="menteeEducationLine" class="mentee-field"><strong>Education:</strong> {{ menteeEducationLine }}</p>
-        <p v-if="menteeExperienceLine" class="mentee-field"><strong>Experience:</strong> {{ menteeExperienceLine }}</p>
+        <h3 class="mentee-title">{{ selectedBooking?.counterpart?.profile?.fullName || selectedBooking?.counterpart?.fullName || 'Mentee' }}</h3>
+
+        <!-- Booking details -->
+        <div class="section">
+          <h4 class="section-title">Booking</h4>
+          <p class="mentee-field" v-if="selectedBooking?.status"><strong>Status:</strong> {{ selectedBooking.status }}</p>
+          <p class="mentee-field" v-if="selectedBooking?.time"><strong>Time:</strong> {{ selectedBooking.time }}</p>
+          <p class="mentee-field" v-if="selectedBooking?.duration"><strong>Duration:</strong> {{ selectedBooking.duration }}</p>
+          <p class="mentee-field" v-if="selectedBooking?.address"><strong>Address:</strong> {{ selectedBooking.address }}</p>
+          <p class="mentee-field" v-if="selectedBooking?.topic"><strong>Topic:</strong> {{ selectedBooking.topic }}</p>
+          <p class="mentee-field" v-if="selectedBooking?.description"><strong>Description:</strong> {{ selectedBooking.description }}</p>
+        </div>
+
+        <!-- Mentee details -->
+        <div class="section">
+          <h4 class="section-title">Mentee</h4>
+          <p class="mentee-field" v-if="selectedBooking?.counterpart?.email"><strong>Email:</strong> {{ selectedBooking.counterpart.email }}</p>
+          <p class="mentee-field" v-if="selectedBooking?.counterpart?.profile?.location"><strong>Location:</strong> {{ selectedBooking.counterpart.profile.location }}</p>
+          <p class="mentee-field" v-if="menteeEducationLine"><strong>Education:</strong> {{ menteeEducationLine }}</p>
+          <p class="mentee-field" v-if="menteeExperienceLine"><strong>Experience:</strong> {{ menteeExperienceLine }}</p>
+        </div>
+
         <div class="modal-actions">
           <button class="close-btn" @click="closeMenteeDetails">Close</button>
         </div>
@@ -236,7 +239,7 @@ export default {
       slots: [],
       // mentee detail modal state
       showMenteeModal: false,
-      menteeDetails: null
+      selectedBooking: null
     }
   },
   computed: {
@@ -250,13 +253,13 @@ export default {
       }
     },
     menteeEducationLine() {
-      const p = this.menteeDetails?.profile
+      const p = this.selectedBooking?.counterpart?.profile
       const list = p?.educations
       if (!Array.isArray(list) || list.length === 0) return ''
       return this.formatEducation(list[0])
     },
     menteeExperienceLine() {
-      const p = this.menteeDetails?.profile
+      const p = this.selectedBooking?.counterpart?.profile
       const list = p?.experiences
       if (!Array.isArray(list) || list.length === 0) return ''
       return this.formatExperience(list[0])
@@ -281,8 +284,7 @@ export default {
           counterpart: b.counterpart || null,
           // menteeAvatar retained but not displayed
           menteeAvatar: b.counterpart?.profileImageUrl || '/default-avatar.jpg',
-          // new flag for collapsible details
-          showDetails: false
+
         }))
       } catch (err) {
         console.error('Failed to fetch bookings:', err)
@@ -422,16 +424,14 @@ export default {
         alert('Something went wrong while rejecting the booking.')
       }
     },
-    toggleDetails(booking) {
-      booking.showDetails = !booking.showDetails
-    },
-    openMenteeDetails(counterpart) {
-      this.menteeDetails = counterpart || null
-      this.showMenteeModal = !!this.menteeDetails
+
+    openMenteeDetails(booking) {
+      this.selectedBooking = booking || null
+      this.showMenteeModal = !!this.selectedBooking
     },
     closeMenteeDetails() {
       this.showMenteeModal = false
-      this.menteeDetails = null
+      this.selectedBooking = null
     },
     formatEducation(edu) {
       if (!edu) return ''
@@ -1021,7 +1021,7 @@ export default {
 .mentee-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.25);
+  background: rgba(0,0,0,0.25);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1029,10 +1029,10 @@ export default {
 }
 .mentee-modal {
   width: 100%;
-  max-width: 520px;
+  max-width: 560px;
   background: #fff;
   border-radius: 12px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.12);
   padding: 20px 20px 16px;
 }
 .mentee-title {
@@ -1040,6 +1040,15 @@ export default {
   font-weight: 600;
   color: #111827;
   margin-bottom: 10px;
+}
+.section {
+  margin-top: 8px;
+}
+.section-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 4px;
 }
 .mentee-field {
   margin: 6px 0;
