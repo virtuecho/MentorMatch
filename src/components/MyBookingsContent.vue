@@ -34,25 +34,20 @@
             </div>
             <div class="booking-details">
               <h3 class="booking-time">{{ booking.time }}</h3>
-              <p class="mentor-info">Mentor: {{ booking.mentor }}</p>
-
-              <button 
-              class="details-toggle" 
-              @click="toggleDetails(booking)" 
-              :aria-expanded="booking.showDetails"
-              >
-                <svg class="chevron" width="14" height="14" viewBox="0 0 24 24" aria-hidden="true">
-                  <path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-                <span class="details-label">{{ booking.showDetails ? 'Hide details' : 'View details' }}</span>
-              </button>
-
-              <!-- Collapsible details -->
-              <div v-if="booking.showDetails" class="booking-extra">
-                <p v-if="booking.topic" class="booking-topic"><strong>Topic:</strong> {{ booking.topic }}</p>
-                <p v-if="booking.description" class="booking-description"><strong>Description:</strong> {{ booking.description }}</p>
-              </div>
-
+              <p class="mentor-info">
+                <span class="Mentor-label">Mentor:</span>
+                <button
+                  class="Mentor-link"
+                  @click="openMentorDetails(booking)"
+                  :aria-label="`Open ${booking.mentor} details`"
+                  title="Click to view booking & mentor details"
+                >
+                  <svg class="mentor-icon" width="14" height="14" viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                  <span class="mentor-name">{{ booking.mentor }}</span>
+                </button>
+              </p>
             </div>
           </div>
           <div class="booking-actions" v-if="booking.status === 'Accepted' || booking.status === 'Pending'">
@@ -93,6 +88,36 @@
          </div>
       </div>
     </div>
+
+    <!-- Mentor + Booking details modal -->
+    <div v-if="showMentorModal" class="mentor-overlay" @click.self="closeMentorDetails">
+      <div class="mentor-modal" role="dialog" aria-modal="true">
+        <h3 class="modal-title">Details</h3>
+
+        <!-- Booking details -->
+        <div class="section">
+          <h4 class="section-title">Booking</h4>
+          <p class="mentor-field" v-if="selectedBooking?.duration"><strong>Duration:</strong> {{ selectedBooking.duration }}</p>
+          <p class="mentor-field" v-if="selectedBooking?.address"><strong>Address:</strong> {{ selectedBooking.address }}</p>
+          <p class="mentor-field" v-if="selectedBooking?.topic"><strong>Topic:</strong> {{ selectedBooking.topic }}</p>
+          <p class="mentor-field" v-if="selectedBooking?.description"><strong>Description:</strong> {{ selectedBooking.description }}</p>
+        </div>
+
+        <!-- Mentor details -->
+        <div class="section">
+          <h4 class="section-title">Mentor</h4>
+          <p class="mentor-field" v-if="selectedBooking?.counterpart?.email"><strong>Email:</strong> {{ selectedBooking.counterpart.email }}</p>
+          <p class="mentor-field" v-if="selectedBooking?.counterpart?.profile?.location"><strong>Location:</strong> {{ selectedBooking.counterpart.profile.location }}</p>
+          <p class="mentor-field" v-if="mentorEducationLine"><strong>Education:</strong> {{ mentorEducationLine }}</p>
+          <p class="mentor-field" v-if="mentorExperienceLine"><strong>Experience:</strong> {{ mentorExperienceLine }}</p>
+        </div>
+
+        <div class="modal-actions">
+          <button class="close-btn" @click="closeMentorDetails">Close</button>
+        </div>
+      </div>
+    </div>
+
   </div>
 </template>
 
@@ -115,7 +140,9 @@ export default {
         { id: 'rejected', label: 'Rejected' },
         { id: 'completed', label: 'Completed' }
       ],
-      bookings: []
+      bookings: [],
+      showMentorModal: false,
+      selectedBooking: null
     }
   },
   computed: {
@@ -126,6 +153,18 @@ export default {
       return this.bookings.filter(booking => 
         booking.status.toLowerCase() === this.activeFilter
       )
+    },
+    mentorEducationLine() {
+      const p = this.selectedBooking?.counterpart?.profile
+      const list = p?.educations
+      if (!Array.isArray(list) || list.length === 0) return ''
+      return this.formatEducation(list[0])
+    },
+    mentorExperienceLine() {
+      const p = this.selectedBooking?.counterpart?.profile
+      const list = p?.experiences
+      if (!Array.isArray(list) || list.length === 0) return ''
+      return this.formatExperience(list[0])
     }
   },
   methods: {
@@ -143,8 +182,9 @@ export default {
           duration: `${b.slot?.durationMins} minutes`,
           address: b.slot?.address || 'No location info',
           mentor: b.counterpart?.fullName || 'Unknown mentor',
+          // keep counterpart for detail modal
+          counterpart: b.counterpart || null,
           mentorAvatar: b.counterpart?.profileImageUrl || '/default-avatar.jpg',
-          showDetails: false
         }))
       } catch (err) {
         console.error('Failed to fetch bookings:', err)
@@ -192,8 +232,29 @@ export default {
         }
       }
     },
-    toggleDetails(booking) {
-      booking.showDetails = !booking.showDetails
+    openMentorDetails(booking) {
+      this.selectedBooking = booking || null
+      this.showMentorModal = !!this.selectedBooking
+    },
+    closeMentorDetails() {
+      this.showMentorModal = false
+      this.selectedBooking = null
+    },
+    formatEducation(edu) {
+      if (!edu) return ''
+      const base = [edu.degree, edu.major, edu.university].filter(Boolean).join(', ')
+      const years = edu.startYear
+        ? (edu.endYear ? `${edu.startYear} - ${edu.endYear}` : `${edu.startYear} - Present`)
+        : ''
+      return [base, years].filter(Boolean).join(' • ')
+    },
+    formatExperience(exp) {
+      if (!exp) return ''
+      const base = [exp.company, exp.title].filter(Boolean).join(', ')
+      const years = exp.startYear
+        ? (exp.endYear ? `${exp.startYear} - ${exp.endYear}` : `${exp.startYear} - Present`)
+        : ''
+      return [base, years].filter(Boolean).join(' • ')
     }
   },
 
@@ -683,4 +744,152 @@ export default {
     padding: 12px 16px;
   }
 }
+
+/* Mentor modal and link styles */
+.mentor-info {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+  color: #374151;
+  line-height: 1.5;
+}
+mentor-label {
+  color: #4b5563;
+  font-weight: 600;
+}
+.mentor-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 2px 10px;
+  background: transparent;
+  border: none;
+  border-radius: 9999px;
+  color: #1f2937;
+  cursor: pointer;
+  text-align: left;
+  transition: background-color 0.15s ease, color 0.15s ease;
+  margin-left: 0;
+}
+.mentor-link:hover {
+  color: #2563eb;
+  background: rgba(37, 99, 235, 0.10);
+}
+.mentor-link:focus-visible {
+  outline: 2px solid #93c5fd;
+  outline-offset: 2px;
+  background: rgba(37, 99, 235, 0.12);
+}
+.mentor-icon {
+  color: #2563eb;
+  transition: transform 0.2s ease;
+}
+.mentor-link:hover .mentor-icon {
+  transform: translateX(2px);
+}
+.mentor-name {
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  line-height: 1.5;
+}
+.mentor-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 40;
+}
+.mentor-modal {
+  width: 100%;
+  max-width: 560px;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.12);
+  padding: 20px 20px 16px;
+}
+.mentor-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #111827;
+  margin-bottom: 10px;
+}
+.section {
+  margin-top: 8px;
+}
+.section-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 4px;
+}
+.mentor-field {
+  margin: 6px 0;
+  color: #374151;
+}
+.modal-actions {
+  margin-top: 12px;
+  display: flex;
+  justify-content: flex-end;
+}
+.close-btn {
+  background: #111827;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 12px;
+  cursor: pointer;
+}
+.close-btn:hover {
+  background: #1f2937;
+}
+
+.modal-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #111827;
+  margin-bottom: 10px;
+}
+
+.details-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 0;
+    background: transparent;
+    border: none;
+    color: #1f2937;
+    cursor: pointer;
+    text-align: left;
+    border-radius: 6px;
+  }
+  .details-toggle:hover {
+    color: #2563eb;
+    background: rgba(37, 99, 235, 0.08);
+  }
+  .details-toggle:focus-visible {
+    outline: 2px solid #93c5fd;
+    outline-offset: 2px;
+  }
+  .chevron {
+    transition: transform 0.2s ease;
+  }
+  /* rotate chevron when expanded */
+  [aria-expanded="true"] .chevron {
+    transform: rotate(90deg);
+  }
+  .details-label {
+    font-weight: 500;
+  }
+  .booking-extra {
+    margin-top: 8px;
+  }
+  .booking-topic,
+  .booking-description {
+    color: #374151;
+    margin-top: 4px;
+    line-height: 1.5;
+  }
 </style>
