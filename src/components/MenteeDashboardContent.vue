@@ -11,24 +11,29 @@
         <!-- Filter Dropdowns -->
         <div class="filter-dropdowns">
           <div class="filter-dropdown">
-            <select v-model="selectedCity" class="filter-select">
-              <option value="">Select city</option>
-              <option value="sydney">Sydney</option>
-            <option value="melbourne">Melbourne</option>
-            <option value="brisbane">Brisbane</option>
-            <option value="perth">Perth</option>
-            <option value="adelaide">Adelaide</option>
-            </select>
+            <input
+              v-model="selectedCity"
+              list="city-list"
+              class="filter-select"
+              placeholder="Type to search city"
+              aria-label="Type to search city"
+            />
+            <datalist id="city-list">
+              <option v-for="c in cityOptions" :key="c" :value="c" />
+            </datalist>
           </div>
           
           <div class="filter-dropdown">
-            <select v-model="selectedMajor" class="filter-select">
-              <option value="">Select field</option>
-              <option value="computer-science">Computer Science</option>
-              <option value="data-science">Data Science</option>
-              <option value="ai-ml">AI & Machine Learning</option>
-              <option value="art">Art</option>
-            </select>
+            <input
+              v-model="selectedMajor"
+              list="field-list"
+              class="filter-select"
+              placeholder="Type to search field"
+              aria-label="Type to search field"
+            />
+            <datalist id="field-list">
+              <option v-for="f in fieldOptions" :key="f" :value="f" />
+            </datalist>
           </div>
         </div>
         
@@ -132,6 +137,9 @@ export default {
       searchQuery: '',
       selectedCity: '',
       selectedMajor: '',
+      // Maintainable city/field options
+      cityOptions: ['Sydney', 'Melbourne', 'Brisbane', 'Perth', 'Adelaide'],
+      fieldOptions: ['Computer Science', 'Data Science', 'AI & Machine Learning', 'Art'],
       selectedTags: [],
       selectedDate: '',
       selectedTime: '',
@@ -177,14 +185,20 @@ export default {
         )
       }
       
-      // Filter by city
+      // Filter by city (supports typing search, case-insensitive, partial match)
       if (this.selectedCity) {
-        filtered = filtered.filter(mentor => mentor.city === this.selectedCity)
+        const cityQuery = this.selectedCity.toLowerCase()
+        filtered = filtered.filter(mentor =>
+          mentor.city && mentor.city.toLowerCase().includes(cityQuery)
+        )
       }
       
-      // Filter by major
+      // Filter by field/major (supports typing search, case-insensitive, partial match)
       if (this.selectedMajor) {
-        filtered = filtered.filter(mentor => mentor.major === this.selectedMajor)
+        const fieldQuery = this.selectedMajor.toLowerCase()
+        filtered = filtered.filter(mentor =>
+          mentor.major && mentor.major.toLowerCase().includes(fieldQuery)
+        )
       }
       
       // Filter by selected tags
