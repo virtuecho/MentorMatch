@@ -35,6 +35,24 @@
             <div class="booking-details">
               <h3 class="booking-time">{{ booking.time }}</h3>
               <p class="mentor-info">Mentor: {{ booking.mentor }}</p>
+
+              <button 
+              class="details-toggle" 
+              @click="toggleDetails(booking)" 
+              :aria-expanded="booking.showDetails"
+              >
+                <svg class="chevron" width="14" height="14" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <span class="details-label">{{ booking.showDetails ? 'Hide details' : 'View details' }}</span>
+              </button>
+
+              <!-- Collapsible details -->
+              <div v-if="booking.showDetails" class="booking-extra">
+                <p v-if="booking.topic" class="booking-topic"><strong>Topic:</strong> {{ booking.topic }}</p>
+                <p v-if="booking.description" class="booking-description"><strong>Description:</strong> {{ booking.description }}</p>
+              </div>
+
             </div>
           </div>
           <div class="booking-actions" v-if="booking.status === 'Accepted' || booking.status === 'Pending'">
@@ -125,7 +143,8 @@ export default {
           duration: `${b.slot?.durationMins} minutes`,
           address: b.slot?.address || 'No location info',
           mentor: b.counterpart?.fullName || 'Unknown mentor',
-          mentorAvatar: b.counterpart?.profileImageUrl || '/default-avatar.jpg'
+          mentorAvatar: b.counterpart?.profileImageUrl || '/default-avatar.jpg',
+          showDetails: false
         }))
       } catch (err) {
         console.error('Failed to fetch bookings:', err)
@@ -172,6 +191,9 @@ export default {
           alert('Something went wrong while cancelling the booking.')
         }
       }
+    },
+    toggleDetails(booking) {
+      booking.showDetails = !booking.showDetails
     }
   },
 
@@ -351,6 +373,46 @@ export default {
   color: #1a1a1a;
   margin: 0;
 }
+
+.details-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 0;
+    background: transparent;
+    border: none;
+    color: #1f2937;
+    cursor: pointer;
+    text-align: left; /* left aligned */
+    border-radius: 6px;
+  }
+  .details-toggle:hover {
+    color: #2563eb;
+    background: rgba(37, 99, 235, 0.08);
+  }
+  .details-toggle:focus-visible {
+    outline: 2px solid #93c5fd;
+    outline-offset: 2px;
+  }
+  .chevron {
+    transition: transform 0.2s ease;
+  }
+  /* rotate chevron when expanded */
+  [aria-expanded="true"] .chevron {
+    transform: rotate(90deg);
+  }
+  .details-label {
+    font-weight: 500;
+  }
+  .booking-extra {
+    margin-top: 8px;
+  }
+  .booking-topic,
+  .booking-description {
+    color: #374151;
+    margin-top: 4px;
+    line-height: 1.5;
+  }
 
 .mentor-info {
   font-size: 14px;
