@@ -35,9 +35,9 @@
             <div class="booking-details">
               <h3 class="booking-time">{{ booking.time }}</h3>
               <p class="mentor-info">
-                <span class="Mentor-label">Mentor:</span>
+                <span class="mentor-label">Mentor:</span>
                 <button
-                  class="Mentor-link"
+                  class="mentor-link"
                   @click="openMentorDetails(booking)"
                   :aria-label="`Open ${booking.mentor} details`"
                   title="Click to view booking & mentor details"
