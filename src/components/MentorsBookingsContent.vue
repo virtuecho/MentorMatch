@@ -36,13 +36,19 @@
               <h3 class="booking-time">{{ booking.time }}</h3>
               <!-- Mentee inline name only (avatar removed) -->
               <p class="mentor-info">
-                Mentee:
-                <button class="mentee-link" @click="openMenteeDetails(booking)">
-                  {{ booking.mentee }}
+                <span class="mentee-label">Mentee:</span>
+                <button
+                  class="mentee-link"
+                  @click="openMenteeDetails(booking)"
+                  :aria-label="`Open ${booking.mentee} details`"
+                  title="Click to view booking & mentee details"
+                >
+                  <svg class="mentee-icon" width="14" height="14" viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                  <span class="mentee-name">{{ booking.mentee }}</span>
                 </button>
               </p>
-
-
             </div>
           </div>
           <div class="booking-actions" v-if="booking.status === 'Accepted' || booking.status === 'Pending'">
@@ -171,13 +177,11 @@
     <!-- Mentee + Booking details modal -->
     <div v-if="showMenteeModal" class="mentee-overlay" @click.self="closeMenteeDetails">
       <div class="mentee-modal" role="dialog" aria-modal="true">
-        <h3 class="mentee-title">{{ selectedBooking?.counterpart?.profile?.fullName || selectedBooking?.counterpart?.fullName || 'Mentee' }}</h3>
+        <h3 class="modal-title">Details</h3>
 
         <!-- Booking details -->
         <div class="section">
           <h4 class="section-title">Booking</h4>
-          <p class="mentee-field" v-if="selectedBooking?.status"><strong>Status:</strong> {{ selectedBooking.status }}</p>
-          <p class="mentee-field" v-if="selectedBooking?.time"><strong>Time:</strong> {{ selectedBooking.time }}</p>
           <p class="mentee-field" v-if="selectedBooking?.duration"><strong>Duration:</strong> {{ selectedBooking.duration }}</p>
           <p class="mentee-field" v-if="selectedBooking?.address"><strong>Address:</strong> {{ selectedBooking.address }}</p>
           <p class="mentee-field" v-if="selectedBooking?.topic"><strong>Topic:</strong> {{ selectedBooking.topic }}</p>
@@ -1001,22 +1005,51 @@ export default {
 
 /* Mentee modal and link styles */
 .mentor-info {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   margin-top: 6px;
   color: #374151;
+  line-height: 1.5;
+}
+.mentee-label {
+  color: #4b5563;
+  font-weight: 600;
 }
 .mentee-link {
-  background: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 2px 10px;
+  background: transparent;
   border: none;
-  padding: 0;
-  margin-left: 6px;
-  color: #0f172a;
+  border-radius: 9999px;
+  color: #1f2937;
   cursor: pointer;
-  text-decoration: none;
-  font-weight: 500;
+  text-align: left;
+  transition: background-color 0.15s ease, color 0.15s ease;
+  margin-left: 0;
 }
 .mentee-link:hover {
   color: #2563eb;
-  text-decoration: underline;
+  background: rgba(37, 99, 235, 0.10);
+}
+.mentee-link:focus-visible {
+  outline: 2px solid #93c5fd;
+  outline-offset: 2px;
+  background: rgba(37, 99, 235, 0.12);
+}
+.mentee-icon {
+  color: #2563eb;
+  transition: transform 0.2s ease;
+}
+.mentee-link:hover .mentee-icon {
+  transform: translateX(2px);
+}
+.mentee-name {
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  line-height: 1.5;
 }
 .mentee-overlay {
   position: fixed;
@@ -1069,6 +1102,12 @@ export default {
 }
 .close-btn:hover {
   background: #1f2937;
+}
+.modal-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #111827;
+  margin-bottom: 10px;
 }
 </style>
 
