@@ -27,60 +27,63 @@
         :key="booking.id"
         class="booking-card"
       >
-      <div class="booking-content">
-        <div class="booking-info">
-          <div class="status-badge" :class="booking.status.toLowerCase()">
-            {{ booking.status }}
-          </div>
-          <div class="booking-details">
-            <h3 class="booking-time">{{ booking.time }}</h3>
-            <!-- Mentee inline name only (avatar removed) -->
-            <p class="mentor-info">Mentee: {{ booking.mentee }}</p>
+        <div class="booking-content">
+          <div class="booking-info">
+            <div class="status-badge" :class="booking.status.toLowerCase()">
+              {{ booking.status }}
+            </div>
+            <div class="booking-details">
+              <h3 class="booking-time">{{ booking.time }}</h3>
+              <!-- Mentee inline name only (avatar removed) -->
+              <p class="mentor-info">
+                Mentee:
+                <button class="mentee-link" @click="openMenteeDetails(booking.counterpart)">
+                  {{ booking.mentee }}
+                </button>
+              </p>
 
-            <!-- Left-aligned, polished details toggle -->
-            <button 
-              class="details-toggle" 
-              @click="toggleDetails(booking)" 
-              :aria-expanded="booking.showDetails"
-            >
-              <svg class="chevron" width="14" height="14" viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
-              <span class="details-label">{{ booking.showDetails ? 'Hide details' : 'View details' }}</span>
-            </button>
+              <button 
+                class="details-toggle" 
+                @click="toggleDetails(booking)" 
+                :aria-expanded="booking.showDetails"
+              >
+                <svg class="chevron" width="14" height="14" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <span class="details-label">{{ booking.showDetails ? 'Hide details' : 'View details' }}</span>
+              </button>
 
-            <!-- Collapsible details -->
-            <div v-if="booking.showDetails" class="booking-extra">
-              <p v-if="booking.topic" class="booking-topic"><strong>Topic:</strong> {{ booking.topic }}</p>
-              <p v-if="booking.description" class="booking-description"><strong>Description:</strong> {{ booking.description }}</p>
+              <div v-if="booking.showDetails" class="booking-extra">
+                <p v-if="booking.topic" class="booking-topic"><strong>Topic:</strong> {{ booking.topic }}</p>
+                <p v-if="booking.description" class="booking-description"><strong>Description:</strong> {{ booking.description }}</p>
+              </div>
             </div>
           </div>
-        </div>
-        <div class="booking-actions" v-if="booking.status === 'Accepted' || booking.status === 'Pending'">
-          <template v-if="booking.status === 'Pending'">
-            <button 
-              class="accept-btn"
-              @click="acceptBooking(booking)"
-            >
-              Accept
+          <div class="booking-actions" v-if="booking.status === 'Accepted' || booking.status === 'Pending'">
+            <template v-if="booking.status === 'Pending'">
+              <button 
+                class="accept-btn"
+                @click="acceptBooking(booking)"
+              >
+                Accept
+              </button>
+              <button 
+                class="reject-btn"
+                @click="rejectBooking(booking)"
+              >
+                Reject
+              </button>
+            </template>
+            <button v-if="booking.status === 'Accepted'" class="cancel-btn" @click="showBookingCancelConfirmation(booking)">
+              <span>Cancel</span>
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                <path d="M12 4L4 12M4 4L12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
             </button>
-            <button 
-              class="reject-btn"
-              @click="rejectBooking(booking)"
-            >
-              Reject
-            </button>
-          </template>
-          <button v-if="booking.status === 'Accepted'" class="cancel-btn" @click="showBookingCancelConfirmation(booking)">
-            <span>Cancel</span>
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-              <path d="M12 4L4 12M4 4L12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-          </button>
+          </div>
         </div>
       </div>
     </div>
-  </div>
 
     <!-- Empty State -->
     <div v-if="filteredBookings.length === 0" class="empty-state">
@@ -130,7 +133,6 @@
   
 
     <!-- All created available slots -->
-
     <div class="my-available-slots-section">
       <!-- Header Section -->
       <div class="header-section">
@@ -159,28 +161,41 @@
           :key="slot.id"
           class="meeting-card"
         >
-        <div class="meeting-content">
-          <div class="meeting-info">
-            <div class="meeting-details">
-              <h3 class="meeting-time">{{ slot.time }}</h3>
-              <p class="meeting-location">Location: {{ slot.address }}</p>
-              <p class="meeting-duration">Duration: {{ slot.duration }}</p>
+          <div class="meeting-content">
+            <div class="meeting-info">
+              <div class="meeting-details">
+                <h3 class="meeting-time">{{ slot.time }}</h3>
+                <p class="meeting-location">Location: {{ slot.address }}</p>
+                <p class="meeting-duration">Duration: {{ slot.duration }}</p>
+              </div>
+            </div>
+            <div class="meeting-actions">
+              <button class="cancel-btn" @click="showSlotCancelConfirmation(slot)">
+                <span>Cancel</span>
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                  <path d="M12 4L4 12M4 4L12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </button>
             </div>
           </div>
-          <div class="meeting-actions">
-            <button class="cancel-btn" @click="showSlotCancelConfirmation(slot)">
-              <span>Cancel</span>
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                <path d="M12 4L4 12M4 4L12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
-            </button>
-          </div>
-        </div>
-      </div>  
+        </div>  
+      </div>
     </div>
 
+    <!-- Lightweight mentee info modal -->
+    <div v-if="showMenteeModal" class="mentee-overlay" @click.self="closeMenteeDetails">
+      <div class="mentee-modal" role="dialog" aria-modal="true">
+        <h3 class="mentee-title">{{ menteeDetails?.profile?.fullName || menteeDetails?.fullName || 'Mentee' }}</h3>
+        <p v-if="menteeDetails?.email" class="mentee-field"><strong>Email:</strong> {{ menteeDetails.email }}</p>
+        <p v-if="menteeDetails?.profile?.location" class="mentee-field"><strong>Location:</strong> {{ menteeDetails.profile.location }}</p>
+        <p v-if="menteeEducationLine" class="mentee-field"><strong>Education:</strong> {{ menteeEducationLine }}</p>
+        <p v-if="menteeExperienceLine" class="mentee-field"><strong>Experience:</strong> {{ menteeExperienceLine }}</p>
+        <div class="modal-actions">
+          <button class="close-btn" @click="closeMenteeDetails">Close</button>
+        </div>
+      </div>
+    </div>
 
-  </div>
   </div>
 </template>
 
@@ -218,7 +233,10 @@ export default {
         { id: 'completed', label: 'Completed' },
       ],
       bookings: [],
-      slots: []
+      slots: [],
+      // mentee detail modal state
+      showMenteeModal: false,
+      menteeDetails: null
     }
   },
   computed: {
@@ -230,6 +248,18 @@ export default {
           booking.status.toLowerCase() === this.activeFilter
         )
       }
+    },
+    menteeEducationLine() {
+      const p = this.menteeDetails?.profile
+      const list = p?.educations
+      if (!Array.isArray(list) || list.length === 0) return ''
+      return this.formatEducation(list[0])
+    },
+    menteeExperienceLine() {
+      const p = this.menteeDetails?.profile
+      const list = p?.experiences
+      if (!Array.isArray(list) || list.length === 0) return ''
+      return this.formatExperience(list[0])
     }
   },
   methods: {
@@ -247,6 +277,8 @@ export default {
           duration: `${b.slot?.durationMins} minutes`,
           address: b.slot?.address || 'No location info',
           mentee: b.counterpart?.fullName || 'Unknown mentee',
+          // keep counterpart for detail modal
+          counterpart: b.counterpart || null,
           // menteeAvatar retained but not displayed
           menteeAvatar: b.counterpart?.profileImageUrl || '/default-avatar.jpg',
           // new flag for collapsible details
@@ -301,7 +333,7 @@ export default {
     },
     handleMeetingCreated(meetingData) {
       const newMeeting = {
-        id: this.meetings.length + 1,
+        id: this.bookings.length + 1,
         status: 'Pending',
         time: `${meetingData.date}, ${meetingData.time}`,
         duration: `${meetingData.durationMins} minutes`,
@@ -310,8 +342,9 @@ export default {
 
       // Add the new meeting to list
       this.bookings.unshift(newMeeting)
-      this.addMeeting(meetingData)
-
+      if (typeof this.addMeeting === 'function') {
+        this.addMeeting(meetingData)
+      }
     },
     showBookingCancelConfirmation(booking) {
       this.bookingToCancel = booking
@@ -353,7 +386,6 @@ export default {
         } catch (err) {
           console.error('Failed to delete slot:', err);
 
-          // Axios-style response body check
           const apiError =
             err?.response?.data?.error ||
             err?.response?.data?.message ||
@@ -392,6 +424,30 @@ export default {
     },
     toggleDetails(booking) {
       booking.showDetails = !booking.showDetails
+    },
+    openMenteeDetails(counterpart) {
+      this.menteeDetails = counterpart || null
+      this.showMenteeModal = !!this.menteeDetails
+    },
+    closeMenteeDetails() {
+      this.showMenteeModal = false
+      this.menteeDetails = null
+    },
+    formatEducation(edu) {
+      if (!edu) return ''
+      const base = [edu.degree, edu.major, edu.university].filter(Boolean).join(', ')
+      const years = edu.startYear
+        ? (edu.endYear ? `${edu.startYear} - ${edu.endYear}` : `${edu.startYear} - Present`)
+        : ''
+      return [base, years].filter(Boolean).join(' • ')
+    },
+    formatExperience(exp) {
+      if (!exp) return ''
+      const base = [exp.company, exp.title].filter(Boolean).join(', ')
+      const years = exp.startYear
+        ? (exp.endYear ? `${exp.startYear} - ${exp.endYear}` : `${exp.startYear} - Present`)
+        : ''
+      return [base, years].filter(Boolean).join(' • ')
     }
   },
 
@@ -942,6 +998,69 @@ export default {
     padding: 12px 16px;
   }
 }
+
+/* Mentee modal and link styles */
+.mentor-info {
+  margin-top: 6px;
+  color: #374151;
+}
+.mentee-link {
+  background: none;
+  border: none;
+  padding: 0;
+  margin-left: 6px;
+  color: #0f172a;
+  cursor: pointer;
+  text-decoration: none;
+  font-weight: 500;
+}
+.mentee-link:hover {
+  color: #2563eb;
+  text-decoration: underline;
+}
+.mentee-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 40;
+}
+.mentee-modal {
+  width: 100%;
+  max-width: 520px;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+  padding: 20px 20px 16px;
+}
+.mentee-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #111827;
+  margin-bottom: 10px;
+}
+.mentee-field {
+  margin: 6px 0;
+  color: #374151;
+}
+.modal-actions {
+  margin-top: 12px;
+  display: flex;
+  justify-content: flex-end;
+}
+.close-btn {
+  background: #111827;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 12px;
+  cursor: pointer;
+}
+.close-btn:hover {
+  background: #1f2937;
+}
 </style>
 
 <style>
@@ -954,7 +1073,7 @@ export default {
     border: none;
     color: #1f2937;
     cursor: pointer;
-    text-align: left; /* left aligned */
+    text-align: left;
     border-radius: 6px;
   }
   .details-toggle:hover {
