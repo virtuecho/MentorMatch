@@ -80,8 +80,8 @@
           </button>
           
           <!-- Profile Button with Dropdown -->
-          <div class="profile-dropdown" @mouseenter="showDropdown = true" @mouseleave="showDropdown = false">
-            <button class="control-btn profile-btn">
+          <div class="profile-dropdown" @mouseenter="openMenu" @mouseleave="scheduleHide">
+            <button class="control-btn profile-btn" @click="openMenu">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
                 <path d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10Z" stroke="#6B7280" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
                 <path d="M20.59 22c0-3.87-3.85-7-8.59-7s-8.59 3.13-8.59 7" stroke="#6B7280" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
@@ -89,7 +89,7 @@
             </button>
             
             <!-- Dropdown Menu -->
-            <div class="dropdown-menu" v-show="showDropdown">
+            <div class="dropdown-menu" v-show="showDropdown" @mouseenter="openMenu" @mouseleave="scheduleHide">
               <div class="dropdown-item" @click="goToProfile">
                 <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
                   <path d="M8 8a3.333 3.333 0 1 0 0-6.667A3.333 3.333 0 0 0 8 8Z" stroke="#374151" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -132,7 +132,8 @@ export default {
     return {
       searchQuery: '',
       showDropdown: false,
-      role: localStorage.getItem('userRole') || 'mentee'
+      role: localStorage.getItem('userRole') || 'mentee',
+      hideTimer: null
     }
   },
   computed: {
@@ -174,6 +175,17 @@ export default {
           this.$router.push('/my-bookings')
         }
       }
+    },
+
+    openMenu() {
+      if (this.hideTimer) clearTimeout(this.hideTimer)
+      this.showDropdown = true
+    },
+    scheduleHide() {
+      if (this.hideTimer) clearTimeout(this.hideTimer)
+      this.hideTimer = setTimeout(() => {
+        this.showDropdown = false
+      }, 500)
     },
     goToProfile() {
       this.showDropdown = false
