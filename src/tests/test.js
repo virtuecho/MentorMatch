@@ -304,26 +304,37 @@ describe("Profile Update", () => {
 
 describe("Mentor Search", () => {
   it("should return 400 when q is missing or empty", async () => {
-    const res = await request(app).get("/mentor/search");
+    const res = await request(app)
+      .get("/mentor/search")
+      .set("Authorization", `Bearer ${token}`);
     expect(res.statusCode).toBe(400);
 
-    const res2 = await request(app).get("/mentor/search").query({ q: "" });
+    const res2 = await request(app)
+      .get("/mentor/search")
+      .query({ q: "" })
+      .set("Authorization", `Bearer ${token}`);
     expect(res2.statusCode).toBe(400);
   });
 
   it("should fuzzy-match mentor by fullName (tolerates typos)", async () => {
-    const res = await request(app).get("/mentor/search").query({ q: "Long Pyam" });
+    const res = await request(app)
+      .get("/mentor/search")
+      .query({ q: "Long Pyam" })
+      .set("Authorization", `Bearer ${token}`);
     expect(res.statusCode).toBe(200);
     expect(Array.isArray(res.body)).toBe(true);
     expect(res.body.length).toBeGreaterThan(0);
     const mentor = res.body[0];
     expect(mentor).toHaveProperty("id");
     expect(mentor).toHaveProperty("fullName");
-    expect(mentor).toHaveProperty("mentorSkills");
+    expect(mentor).toHaveProperty("skill");
   });
 
   it("should fuzzy-match mentor by location", async () => {
-    const res = await request(app).get("/mentor/search").query({ q: "sydni" });
+    const res = await request(app)
+      .get("/mentor/search")
+      .query({ q: "melbroune" })
+      .set("Authorization", `Bearer ${token}`);
     expect(res.statusCode).toBe(200);
     expect(Array.isArray(res.body)).toBe(true);
     expect(res.body.length).toBeGreaterThan(0);
@@ -331,7 +342,10 @@ describe("Mentor Search", () => {
   });
 
   it("should match by skill using experience.expertise fallback (tolerates typos)", async () => {
-    const res = await request(app).get("/mentor/search").query({ q: "Machine Laernning" });
+    const res = await request(app)
+      .get("/mentor/search")
+      .query({ q: "Machine Laernning" })
+      .set("Authorization", `Bearer ${token}`);
     expect(res.statusCode).toBe(200);
     expect(Array.isArray(res.body)).toBe(true);
     expect(res.body.length).toBeGreaterThan(0);
@@ -339,19 +353,28 @@ describe("Mentor Search", () => {
   });
 
   it("should return up to default maxResults 10 when maxResults not specified", async () => {
-    const res = await request(app).get("/mentor/search").query({ q: "Candidate" });
+    const res = await request(app)
+      .get("/mentor/search")
+      .query({ q: "Long Pham" })
+      .set("Authorization", `Bearer ${token}`);
     expect(res.statusCode).toBe(200);
     expect(Array.isArray(res.body)).toBe(true);
     expect(res.body.length).toBeLessThanOrEqual(10);
   });
 
   it("should return 404 when DB returns no candidates", async () => {
-    const res = await request(app).get("/mentor/search").query({ q: "thiswillnotmatchanything" });
+    const res = await request(app)
+      .get("/mentor/search")
+      .query({ q: "thiswillnotmatchanything" })
+      .set("Authorization", `Bearer ${token}`);
     expect(res.statusCode).toBe(404);
   });
 
   it("should return 404 when DB returns candidates but fuzzy filtering yields none", async () => {
-    const res = await request(app).get("/mentor/search").query({ q: "completelyunrelatedquery" });
+    const res = await request(app)
+      .get("/mentor/search")
+      .query({ q: "completelyunrelatedquery" })
+      .set("Authorization", `Bearer ${token}`);
     expect(res.statusCode).toBe(404);
   });
 });
