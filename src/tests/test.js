@@ -319,7 +319,7 @@ describe("Mentor Search", () => {
   it("should fuzzy-match mentor by fullName (tolerates typos)", async () => {
     const res = await request(app)
       .get("/mentor/search")
-      .query({ q: "Testt Uzer" })
+      .query({ q: "Test Uzer" })
       .set("Authorization", `Bearer ${token}`);
     expect(res.statusCode).toBe(200);
     expect(Array.isArray(res.body)).toBe(true);
@@ -333,7 +333,7 @@ describe("Mentor Search", () => {
   it("should return up to default maxResults 10 when maxResults not specified", async () => {
     const res = await request(app)
       .get("/mentor/search")
-      .query({ q: "Long Pham" })
+      .query({ q: "Test User" })
       .set("Authorization", `Bearer ${token}`);
     expect(res.statusCode).toBe(200);
     expect(Array.isArray(res.body)).toBe(true);
