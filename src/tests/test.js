@@ -319,7 +319,7 @@ describe("Mentor Search", () => {
   it("should fuzzy-match mentor by fullName (tolerates typos)", async () => {
     const res = await request(app)
       .get("/mentor/search")
-      .query({ q: "Test Uzer" })
+      .query({ q: "Testt Uzer" })
       .set("Authorization", `Bearer ${token}`);
     expect(res.statusCode).toBe(200);
     expect(Array.isArray(res.body)).toBe(true);

@@ -118,7 +118,6 @@ exports.searchMentors = async (req, res) => {
       where: {
         isMentorApproved: true,
         id: { not: currentUserId },
-        availabilitySlots: { some: {} }
       },
       include: {
         profile: {
