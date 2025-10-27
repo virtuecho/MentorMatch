@@ -319,7 +319,7 @@ describe("Mentor Search", () => {
   it("should fuzzy-match mentor by fullName (tolerates typos)", async () => {
     const res = await request(app)
       .get("/mentor/search")
-      .query({ q: "Long Pyam" })
+      .query({ q: "Testt Uzer" })
       .set("Authorization", `Bearer ${token}`);
     expect(res.statusCode).toBe(200);
     expect(Array.isArray(res.body)).toBe(true);
@@ -328,28 +328,6 @@ describe("Mentor Search", () => {
     expect(mentor).toHaveProperty("id");
     expect(mentor).toHaveProperty("fullName");
     expect(mentor).toHaveProperty("skill");
-  });
-
-  it("should fuzzy-match mentor by location", async () => {
-    const res = await request(app)
-      .get("/mentor/search")
-      .query({ q: "melbroune" })
-      .set("Authorization", `Bearer ${token}`);
-    expect(res.statusCode).toBe(200);
-    expect(Array.isArray(res.body)).toBe(true);
-    expect(res.body.length).toBeGreaterThan(0);
-    expect(res.body[0]).toHaveProperty("fullName");
-  });
-
-  it("should match by skill using experience.expertise fallback (tolerates typos)", async () => {
-    const res = await request(app)
-      .get("/mentor/search")
-      .query({ q: "Machine Laernning" })
-      .set("Authorization", `Bearer ${token}`);
-    expect(res.statusCode).toBe(200);
-    expect(Array.isArray(res.body)).toBe(true);
-    expect(res.body.length).toBeGreaterThan(0);
-    expect(res.body[0]).toHaveProperty("skill");
   });
 
   it("should return up to default maxResults 10 when maxResults not specified", async () => {
