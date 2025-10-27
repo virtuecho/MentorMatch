@@ -83,7 +83,7 @@
              Cancel
            </button>
            <button class="modal-btn confirm-modal-btn" @click="confirmCancelBooking">
-             Confirm Cancel
+             Confirm
            </button>
          </div>
       </div>
@@ -96,20 +96,26 @@
 
         <!-- Booking details -->
         <div class="section">
-          <h4 class="section-title">Booking</h4>
-          <p class="mentor-field" v-if="selectedBooking?.duration"><strong>Duration:</strong> {{ selectedBooking.duration }}</p>
-          <p class="mentor-field" v-if="selectedBooking?.address"><strong>Address:</strong> {{ selectedBooking.address }}</p>
-          <p class="mentor-field" v-if="selectedBooking?.topic"><strong>Topic:</strong> {{ selectedBooking.topic }}</p>
-          <p class="mentor-field" v-if="selectedBooking?.description"><strong>Description:</strong> {{ selectedBooking.description }}</p>
-        </div>
-
-        <!-- Mentor details -->
-        <div class="section">
-          <h4 class="section-title">Mentor</h4>
-          <p class="mentor-field" v-if="selectedBooking?.counterpart?.email"><strong>Email:</strong> {{ selectedBooking.counterpart.email }}</p>
-          <p class="mentor-field" v-if="selectedBooking?.counterpart?.profile?.location"><strong>Location:</strong> {{ selectedBooking.counterpart.profile.location }}</p>
-          <p class="mentor-field" v-if="mentorEducationLine"><strong>Education:</strong> {{ mentorEducationLine }}</p>
-          <p class="mentor-field" v-if="mentorExperienceLine"><strong>Experience:</strong> {{ mentorExperienceLine }}</p>
+          <p class="mentor-field" v-if="selectedBooking?.duration">
+            <span class="field-label">Duration</span>
+            <span class="field-value">{{ selectedBooking.duration }}</span>
+          </p>
+          <p class="mentor-field" v-if="selectedBooking?.address">
+            <span class="field-label">Address</span>
+            <span class="field-value">{{ selectedBooking.address }}</span>
+          </p>
+          <p class="mentor-field" v-if="selectedBooking?.topic">
+            <span class="field-label">Topic</span>
+            <span class="field-value">{{ selectedBooking.topic }}</span>
+          </p>
+          <p class="mentor-field" v-if="selectedBooking?.description">
+            <span class="field-label">Description</span>
+            <span class="field-value">{{ selectedBooking.description }}</span>
+          </p>
+          <p class="mentor-field" v-if="selectedBooking?.mentor">
+            <span class="field-label">Mentor</span>
+            <span class="field-value">View Profile</span>
+          </p>
         </div>
 
         <div class="modal-actions">
@@ -544,6 +550,7 @@ export default {
   width: 100%;
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
   animation: modalSlideIn 0.3s ease-out;
+  text-align: center;
 }
 
 @keyframes modalSlideIn {
@@ -595,7 +602,8 @@ export default {
   padding: 16px 24px 24px;
   display: flex;
   gap: 12px;
-  justify-content: flex-end;
+  justify-content: center !important;
+  align-items: center;
 }
 
 .modal-btn {
@@ -804,7 +812,7 @@ mentor-label {
 }
 .mentor-modal {
   width: 100%;
-  max-width: 560px;
+  max-width: 450px;
   background: #fff;
   border-radius: 12px;
   box-shadow: 0 10px 30px rgba(0,0,0,0.12);
@@ -817,17 +825,30 @@ mentor-label {
   margin-bottom: 10px;
 }
 .section {
-  margin-top: 8px;
+  padding-left: 16px;
 }
 .section-title {
+  margin-top: 14px;
   font-size: 14px;
   font-weight: 600;
   color: #1f2937;
   margin-bottom: 4px;
 }
 .mentor-field {
+  display: flex;
+  gap: 12px;
+  margin-top: 8px;
   margin: 6px 0;
   color: #374151;
+  align-items: flex-start;
+}
+.field-label {
+  min-width: 100px;
+  font-weight: 600;
+  color: #1f2937;
+}
+.field-value {
+  flex: 1;
 }
 .modal-actions {
   margin-top: 12px;
@@ -835,24 +856,24 @@ mentor-label {
   justify-content: flex-end;
 }
 .close-btn {
+  font-size: 14px;
   background: #111827;
   color: #fff;
   border: none;
   border-radius: 8px;
-  padding: 8px 12px;
+  padding: 8px 20px;
   cursor: pointer;
 }
 .close-btn:hover {
   background: #1f2937;
 }
-
 .modal-title {
   font-size: 18px;
   font-weight: 600;
   color: #111827;
-  margin-bottom: 10px;
+  margin-bottom: 24px;
+  text-align: center;
 }
-
 .details-toggle {
     display: inline-flex;
     align-items: center;

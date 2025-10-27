@@ -84,11 +84,11 @@
           
           <!-- Contact Information Section -->
           <div class="contact-section">
-            <h3 class="section-title">Contact Information</h3>
+            <h3 class="section-title">Social Media</h3>
             
             <!-- Social Media Field -->
             <div class="form-field">
-              <label class="field-label">Social Media</label>
+              <label class="field-label"></label>
               
               <!-- Display: Icons with links (when not editing) -->
               <div v-if="!isEditMode" class="social-links">
@@ -403,13 +403,13 @@ export default {
       isEditMode: false,
       profile: {
         fullName: '',
-        location: 'No location to show',
+        location: '',
         phone: '',
         socialMedia: '',
         instagramUrl: '',
         facebookUrl: '',
         linkedinUrl: '',
-        bio: 'Tell us about yourself',
+        bio: '',
         avatar: null,
         education: [
           {

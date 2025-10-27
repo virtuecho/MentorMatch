@@ -109,16 +109,16 @@
           <button class="modal-btn cancel-modal-btn" @click="closeCancelModal">
             Cancel
           </button>
-          <p v-if="cancelMode === 'b'">
+          <template v-if="cancelMode === 'b'">
             <button class="modal-btn confirm-modal-btn" @click="confirmCancelBooking">
               Confirm
             </button>
-          </p>
-          <p v-else>
+          </template>
+          <template v-else>
             <button class="modal-btn confirm-modal-btn" @click="confirmCancelSlot">
               Confirm
             </button>
-          </p>
+          </template>
         </div>
       </div>
     </div>
@@ -181,20 +181,26 @@
 
         <!-- Booking details -->
         <div class="section">
-          <h4 class="section-title">Booking</h4>
-          <p class="mentee-field" v-if="selectedBooking?.duration"><strong>Duration:</strong> {{ selectedBooking.duration }}</p>
-          <p class="mentee-field" v-if="selectedBooking?.address"><strong>Address:</strong> {{ selectedBooking.address }}</p>
-          <p class="mentee-field" v-if="selectedBooking?.topic"><strong>Topic:</strong> {{ selectedBooking.topic }}</p>
-          <p class="mentee-field" v-if="selectedBooking?.description"><strong>Description:</strong> {{ selectedBooking.description }}</p>
-        </div>
-
-        <!-- Mentee details -->
-        <div class="section">
-          <h4 class="section-title">Mentee</h4>
-          <p class="mentee-field" v-if="selectedBooking?.counterpart?.email"><strong>Email:</strong> {{ selectedBooking.counterpart.email }}</p>
-          <p class="mentee-field" v-if="selectedBooking?.counterpart?.profile?.location"><strong>Location:</strong> {{ selectedBooking.counterpart.profile.location }}</p>
-          <p class="mentee-field" v-if="menteeEducationLine"><strong>Education:</strong> {{ menteeEducationLine }}</p>
-          <p class="mentee-field" v-if="menteeExperienceLine"><strong>Experience:</strong> {{ menteeExperienceLine }}</p>
+          <p class="mentee-field" v-if="selectedBooking?.duration">
+            <span class="field-label">Duration</span>
+            <span class="field-value">{{ selectedBooking.duration }}</span>
+          </p>
+          <p class="mentee-field" v-if="selectedBooking?.address">
+            <span class="field-label">Address</span>
+            <span class="field-value">{{ selectedBooking.address }}</span>
+          </p>
+          <p class="mentee-field" v-if="selectedBooking?.topic">
+            <span class="field-label">Topic</span>
+            <span class="field-value">{{ selectedBooking.topic }}</span>
+          </p>
+          <p class="mentee-field" v-if="selectedBooking?.description">
+            <span class="field-label">Description</span>
+            <span class="field-value">{{ selectedBooking.description }}</span>
+          </p>
+          <p class="mentee-field" v-if="selectedBooking?.mentee">
+            <span class="field-label">Mentee</span>
+            <span class="field-value">View Profile</span>
+          </p>
         </div>
 
         <div class="modal-actions">
@@ -351,6 +357,7 @@ export default {
       if (typeof this.addMeeting === 'function') {
         this.addMeeting(meetingData)
       }
+      this.fetchData()
     },
     showBookingCancelConfirmation(booking) {
       this.bookingToCancel = booking
@@ -375,7 +382,6 @@ export default {
           this.bookingToCancel.status = 'Cancelled'
           console.log('Booking cancelled:', this.bookingToCancel)
           this.closeCancelModal()
-          window.location.reload();
         } catch (err) {
           console.error('Failed to cancel booking:', err)
           alert('Something went wrong while cancelling the booking.')
@@ -387,8 +393,8 @@ export default {
         try {
           await deleteAvailability({ slotId: this.slotToCancel.id })
           console.log('Slot deleted:', this.slotToCancel)
+          this.fetchData()
           this.closeCancelModal()
-          window.location.reload();
         } catch (err) {
           console.error('Failed to delete slot:', err);
 
@@ -411,7 +417,6 @@ export default {
         const res = await respondToBooking({ bookingId: booking.id, response: 'accepted' })
         booking.status = 'Accepted'
         console.log('Booking accepted:', res.data)
-        window.location.reload();
       } catch (err) {
         console.error('Failed to accept booking:', err)
         alert('Something went wrong while accepting the booking.')
@@ -422,7 +427,6 @@ export default {
         const res = await respondToBooking({ bookingId: booking.id, response: 'rejected' })
         booking.status = 'Rejected'
         console.log('Booking rejected:', res.data)
-        window.location.reload();
       } catch (err) {
         console.error('Failed to reject booking:', err)
         alert('Something went wrong while rejecting the booking.')
@@ -886,7 +890,7 @@ export default {
   padding: 16px 24px 24px;
   display: flex;
   gap: 12px;
-  justify-content: center;
+  justify-content: center !important;
   align-items: center;
 }
 
@@ -1062,7 +1066,7 @@ export default {
 }
 .mentee-modal {
   width: 100%;
-  max-width: 560px;
+  max-width: 450px;
   background: #fff;
   border-radius: 12px;
   box-shadow: 0 10px 30px rgba(0,0,0,0.12);
@@ -1075,17 +1079,30 @@ export default {
   margin-bottom: 10px;
 }
 .section {
-  margin-top: 8px;
+  padding-left: 16px;
 }
 .section-title {
+  margin-top: 14px;
   font-size: 14px;
   font-weight: 600;
   color: #1f2937;
   margin-bottom: 4px;
 }
 .mentee-field {
+  display: flex;
+  gap: 12px;
+  margin-top: 8px;
   margin: 6px 0;
   color: #374151;
+  align-items: flex-start;
+}
+.field-label {
+  min-width: 100px;
+  font-weight: 600;
+  color: #1f2937;
+}
+.field-value {
+  flex: 1;
 }
 .modal-actions {
   margin-top: 12px;
@@ -1093,11 +1110,12 @@ export default {
   justify-content: flex-end;
 }
 .close-btn {
+  font-size: 14px;
   background: #111827;
   color: #fff;
   border: none;
   border-radius: 8px;
-  padding: 8px 12px;
+  padding: 8px 20px;
   cursor: pointer;
 }
 .close-btn:hover {
@@ -1107,7 +1125,8 @@ export default {
   font-size: 18px;
   font-weight: 600;
   color: #111827;
-  margin-bottom: 10px;
+  margin-bottom: 24px;
+  text-align: center;
 }
 </style>
 

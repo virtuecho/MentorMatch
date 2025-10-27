@@ -110,7 +110,6 @@
             // On success
             emit("submitted")
             alert('Your booking request has been sent!')
-
         } catch (error) {
             console.error('Failed to submit booking: ', error)
             alert('There was an error submitting your request. Please try again.')
