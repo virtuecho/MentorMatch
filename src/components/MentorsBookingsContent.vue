@@ -342,6 +342,7 @@ export default {
     },
     closeCreateModal() {
       this.showCreateModal = false
+      this.fetchData()
     },
     handleMeetingCreated(meetingData) {
       const newMeeting = {
@@ -357,7 +358,6 @@ export default {
       if (typeof this.addMeeting === 'function') {
         this.addMeeting(meetingData)
       }
-      this.fetchData()
     },
     showBookingCancelConfirmation(booking) {
       this.bookingToCancel = booking

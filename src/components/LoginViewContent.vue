@@ -76,8 +76,9 @@ export default {
         localStorage.setItem('authToken', res.data.token);
 
         // Reset role to mentee on each login to satisfy default mode
-        localStorage.setItem('userRole', 'mentee')
-        window.dispatchEvent(new CustomEvent('userRoleChanged', { detail: 'mentee' }))
+        const currentRole = res.data.user?.role;
+        localStorage.setItem('userRole', currentRole);
+        window.dispatchEvent(new CustomEvent('userRoleChanged', { detail: currentRole }));
 
         // Navigate to the next page
         const redirect = this.$route.query.redirect || { name: 'dashboard' };
