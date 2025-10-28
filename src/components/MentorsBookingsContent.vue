@@ -79,7 +79,7 @@
 
     <!-- Empty State -->
     <div v-if="filteredBookings.length === 0" class="empty-state">
-      <p>No bookings found for the selected filter.</p>
+      <p>No upcoming sessions or request.</p>
     </div>
 
     <!-- Cancel Confirmation Modal -->
@@ -138,6 +138,11 @@
           </button>
         </div>
       </div>
+
+    <!-- Empty State -->
+    <div v-if="slots.length === 0" class="empty-state">
+      <p>No available slot to show.</p>
+    </div>
 
       <!-- Create Meeting Modal -->
       <CreateMeetingModal 
@@ -199,7 +204,17 @@
           </p>
           <p class="mentee-field" v-if="selectedBooking?.mentee">
             <span class="field-label">Mentee</span>
-            <span class="field-value">View Profile</span>
+            <button
+              class="mentee-link"
+              @click.stop="goToMenteeProfile(selectedBooking.counterpart)"
+              :aria-label="`Open ${selectedBooking.mentee} details`"
+              title="Click to view mentee details"
+            >
+              <svg class="mentee-icon" width="14" height="14" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              <span class="mentee-name">View Profile</span>
+            </button>
           </p>
         </div>
 
@@ -432,7 +447,6 @@ export default {
         alert('Something went wrong while rejecting the booking.')
       }
     },
-
     openMenteeDetails(booking) {
       this.selectedBooking = booking || null
       this.showMenteeModal = !!this.selectedBooking
@@ -456,6 +470,11 @@ export default {
         ? (exp.endYear ? `${exp.startYear} - ${exp.endYear}` : `${exp.startYear} - Present`)
         : ''
       return [base, years].filter(Boolean).join(' • ')
+    },
+    goToMenteeProfile(mentee) {
+      this.$router.push({ 
+        path: `/mentor-profile/${mentee.id}` 
+      });
     }
   },
 

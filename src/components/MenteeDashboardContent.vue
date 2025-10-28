@@ -127,7 +127,7 @@
 </template>
 
 <script>
-import { mentorSearch } from '@/services/mentor';
+import { mentorSearch, mentorRecommend } from '@/services/mentor';
 
 export default {
   name: 'MenteeDashboardContent',
@@ -245,7 +245,7 @@ export default {
       this.isLoading = true;
       this.errorMessage = '';
       try {
-        const res = await mentorSearch({ maxResults: 6 });
+        const res = await mentorRecommend({ maxResults: 6 });
         this.mentors = res.data.map(m => ({
           id: m.id,
           name: m.fullName || 'Unnamed Mentor',

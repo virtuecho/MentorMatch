@@ -103,6 +103,7 @@ router.beforeEach((to, from, next) => {
     return next('/dashboard')
   } else {
     // Mentor mode
+    if (to.path.startsWith('/mentor-profile/')) return next()
     if (mentorAllowed.has(to.path)) return next()
     // If accidentally visits mentee-only pages, send to mentor bookings
     return next('/mentors-bookings')

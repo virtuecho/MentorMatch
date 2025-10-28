@@ -114,7 +114,17 @@
           </p>
           <p class="mentor-field" v-if="selectedBooking?.mentor">
             <span class="field-label">Mentor</span>
-            <span class="field-value">View Profile</span>
+            <button 
+              class="mentor-link"
+              @click.stop="goToMentorProfile(selectedBooking.counterpart)"
+              :aria-label="`Open ${selectedBooking.mentor} details`"
+              title="Click to view mentor details"
+            >
+              <svg class="mentor-icon" width="14" height="14" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              <span class="mentor-name">View Profile</span>
+            </button>
           </p>
         </div>
 
@@ -261,6 +271,11 @@ export default {
         ? (exp.endYear ? `${exp.startYear} - ${exp.endYear}` : `${exp.startYear} - Present`)
         : ''
       return [base, years].filter(Boolean).join(' • ')
+    },
+    goToMentorProfile(mentor) {
+      this.$router.push({
+        path: `/mentor-profile/${mentor.id}`
+      });
     }
   },
 
