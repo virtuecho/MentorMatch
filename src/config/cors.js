@@ -1,6 +1,6 @@
 const allowedOrigins = [
   'http://localhost:3000',
-  'https://networking-companion-frontend.onrender.com'
+  'https://networking-companion-frontend-0iie.onrender.com'
 ];
 
 const corsOptions = {
