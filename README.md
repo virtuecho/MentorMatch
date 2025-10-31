@@ -130,3 +130,14 @@ For full-stack development, start the frontend application in parallel:
 # In a separate terminal (frontend repository)
 npm run dev
 ```
+
+## Accessing Database
+   Keep the database url on `.env` for local testing  
+   Or replace wih the external database url on Render to view the deployed database
+   ```bash
+   DATABASE_URL="External Database Url"
+   ```
+   And then run:
+   ```bash
+   npx prisma studio
+   ```
