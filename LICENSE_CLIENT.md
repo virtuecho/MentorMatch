@@ -7,7 +7,7 @@ This Agreement is made between:
 
 ## 1. Ownership Transfer
 
-The Licensor hereby assigns all rights, title, and interest in the software codebase developed between [Start Date] and [End Date] to the Licensee. This includes:
+The Licensor hereby assigns all rights, title, and interest in the software codebase developed between 08/06/2025 and 10/27/2025 to the Licensee. This includes:
 
 - Source code
 - Configuration files
@@ -32,11 +32,11 @@ The software is provided "as-is" without warranty of any kind. The Licensor shal
 Signed on 10/31/2025:
 
 **Licensor**:  
-Signature: _____Long Pham______  
+Signature: _____Long Pham_____  
 Name: Vu Hung Long Pham  
 Title: Scrum Master
 
 **Licensee**:  
 Signature: ____________________  
-Name: Mengjiao Wei
+Name: Mengjiao Wei  
 Title: Client Representative
