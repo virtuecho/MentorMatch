@@ -29,10 +29,10 @@ The software is provided "as-is" without warranty of any kind. The Licensor shal
 
 ## 4. Signatures
 
-Signed on [Date]:
+Signed on 10/31/2025:
 
 **Licensor**:  
-Signature: ____________________  
+Signature: _____Long Pham______  
 Name: Vu Hung Long Pham  
 Title: Scrum Master
 
