@@ -11,15 +11,7 @@ exports.recommendMentors = async (req, res) => {
       where: {
         isMentorApproved: true,
         id: { not: currentUserId },
-        availabilitySlots: {
-          some: {} // ensures there is at least one slot
-        },
-        profile: {
-          location: location ? { contains: location, mode: 'insensitive' } : undefined
-        },
-        mentorSkills: skill ? {
-          some: { skillName: { contains: skill, mode: 'insensitive' } }
-        } : undefined
+        availabilitySlots: { some: {}}
       },
       include: {
         profile: {
